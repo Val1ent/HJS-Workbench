@@ -22,6 +22,7 @@ REPO_ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
 datas = [
     (os.path.join(REPO_ROOT, "locales"), "locales"),
     (os.path.join(REPO_ROOT, "examples"), "examples"),
+    (os.path.join(REPO_ROOT, "assets"), "assets"),
 ]
 
 hiddenimports = [
@@ -72,6 +73,7 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
+    icon=os.path.join(REPO_ROOT, "assets", "app.ico"),
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

@@ -29,17 +29,19 @@ Requirements: Python 3.12 with PySide6, pyqtgraph, and pyserial installed
    - `dist/HJSWorkbench-CLI.exe` - CLI, single lightweight onefile
      executable with a console.
 
-   `locales/` and `examples/` are bundled inside both packages; firmware
-   files are not bundled and stay separate. The intermediate `build/`
-   folder is disposable and both `build/` and `dist/` are ignored by git.
+   The GUI bundle contains `locales/`, `examples/`, and `assets/`; the CLI
+   bundle contains `locales/`. The application icon is embedded in both
+   executables. Firmware files are not bundled and stay separate. The
+   intermediate `build/` folder is disposable and both `build/` and `dist/`
+   are ignored by git.
 
 ## Verifying the packages
 
 - CLI self-check: run `dist/HJSWorkbench-CLI.exe`, open menu 6 (Offline
   tools) then 1 (full offline self-test report); it must report
-  `Acceptance: 9/9 passed  [OK]`.
+  `Acceptance: 19/19 passed  [OK]`.
 - GUI headless check: `dist/HJSWorkbench-GUI/HJSWorkbench-GUI.exe --check`
-  runs the packaged self-check (bundled examples, nine decoders, a
+  runs the packaged self-check (bundled examples, nineteen decoders, a
   measurement, catalogs) and exits with code 0 for PASS and 1 for FAIL.
   The GUI is a windowed executable, so the summary is always written to a
   UTF-8 report file: `--check-output PATH` chooses the path, otherwise it
@@ -47,7 +49,7 @@ Requirements: Python 3.12 with PySide6, pyqtgraph, and pyserial installed
   directory. A console build or a normal `python -m gui --check` run also
   prints the summary to stdout, followed by the report file path.
 - GUI headless start: set `QT_QPA_PLATFORM=offscreen`, launch the
-  executable, and confirm it stays alive; its version reads 0.3.0.
+  executable, and confirm it stays alive; its version reads 0.5.0.
 
 ## Other platforms
 

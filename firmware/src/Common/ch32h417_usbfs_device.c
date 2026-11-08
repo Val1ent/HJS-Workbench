@@ -238,7 +238,12 @@ void USBFS_IRQHandler( void )
                                       baudrate += ((uint32_t)USBFS_EP0_Buf[ 3 ] << 24 );
                                       Uart.Com_Cfg[ 7 ] = Uart.Rx_TimeOutMax;
 
-                                      UART_USB_Init( );
+                                      /* Keep endpoint 2 as the command channel. The legacy CDC-to-UART bridge
+                                         is no longer used, so its init must not redirect the endpoint DMA away
+                                         from the command buffer. */
+                                      USBFSD->UEP2_DMA = (uint32_t)(uint8_t *)&cmd_dma_buf[ 0 ];
+                                      USBFSD->UEP2_RX_CTRL &= ~USBFS_UEP_R_RES_MASK;
+                                      USBFSD->UEP2_RX_CTRL |= USBFS_UEP_R_RES_ACK;
                                  }
                             }
                             else

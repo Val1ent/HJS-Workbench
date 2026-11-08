@@ -29,6 +29,7 @@ without a display.
 import os
 import sys
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QDialogButtonBox, QLabel, QPushButton,
     QVBoxLayout,
@@ -275,6 +276,7 @@ def main():
         sys.exit(0 if run_check(sys.argv) else 1)
     app = QApplication(sys.argv)
     app.setApplicationName("HJS-Workbench")
+    app.setWindowIcon(QIcon(resource_path("assets", "app.ico")))
 
     saved = config_get("language")
     if saved:
