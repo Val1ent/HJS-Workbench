@@ -1,8 +1,8 @@
 /********************************** (C) COPYRIGHT  *******************************
-* 逻辑分析仪：GPIO 采样在 TIM2 中断里进行（环形缓冲），主循环只负责 USB 发送
-* 这样 USB 发送阻塞期间采样不中断、不丢点，时间轴准确
-* 自测信号源：软件模拟 UART，PA15 普通推挽，1000bps，A15->D0
-* PulseView 加 UART 解码器(1000-8N1) 解出 "Hello CH32!"
+* Logic analyzer: GPIO sampling runs inside the TIM2 interrupt (ring buffer); the main loop only sends over USB
+* This way sampling is never interrupted and no points are lost while a USB send blocks; the time axis stays accurate
+* Self-test signal source: software-emulated UART, PA15 plain push-pull, 1000 bps, A15->D0
+* Add a UART decoder (1000-8N1) in PulseView to decode "Hello CH32!"
 *******************************************************************************/
 #include "hardware.h"
 #include "ch32h417_usbfs_device.h"
@@ -10,32 +10,48 @@
 #define BATCH_POINTS 1000
 static uint8_t batch_buf[BATCH_POINTS];
 
-/* ===== 采样环形缓冲（中断写 / 主循环读） ===== */
-#define RING_SIZE 2048   /* 必须是 2 的幂，容纳 USB 阻塞期间的采样（任务5干净值） */
+/* ===== Capture ring buffer (written in ISR / read in main loop) ===== */
+#define RING_SIZE 2048   /* must be a power of two; holds samples while a USB send blocks (task-5 clean value) */
 static uint8_t  cap_ring[RING_SIZE];
 static volatile uint16_t ring_head = 0;
 static volatile uint16_t ring_tail = 0;
 
-/* ===== 软件 UART 信号源（PA15 / 1000bps） ===== */
+/* ===== Software UART signal source (PA15 / 1000 bps) ===== */
 static const char sig_msg[] = "Hello CH32!\r\n";
 #define SIG_LEN         (sizeof(sig_msg) - 1)
 #define TICKS_PER_BIT   10    /* 100us * 10 = 1ms/bit -> 1000bps @10kHz */
-#define BITS_PER_FRAME  10    /* 起始位 + 8数据位 + 停止位 */
+#define BITS_PER_FRAME  10    /* start bit + 8 data bits + stop bit */
 
 static volatile uint8_t sig_active = 0;
 static uint8_t sig_char;
 static uint8_t sig_bit;
 static uint8_t sig_tick;
-static uint16_t sig_restart_cnt;   /* 空闲时计数，到点重发 */
+static uint16_t sig_restart_cnt;   /* counts while idle; resends when the count is reached */
 
-/* ===== 信号发生器模式：0=软件UART, 1=方波 ===== */
+/* ===== Signal generator mode: 0=software UART, 1=square wave, 2=PWM, 3=burst, 4=forced level ===== */
 volatile uint8_t sig_mode = 0;
-volatile uint16_t sig_square_div = 5;  /* 方波半周期tick数：freq=10000/(2*div)，div=5->1kHz */
+volatile uint16_t sig_square_div = 5;  /* ticks per square half period: freq=10000/(2*div), div=5 -> 1 kHz */
 static uint16_t sig_square_cnt = 0;
-volatile uint8_t last_cmd = 0;   /* 最后有效命令：1=方波, 0=UART，空包跟随它 */
+volatile uint8_t last_cmd = 0;   /* last valid command: 0=UART, 1=square, 2=PWM, 3=burst, 4=forced level; empty packets follow it */
 
-/* ===== PC 命令接收（USB 端点2） ===== */
-__attribute__((aligned(4))) uint8_t cmd_dma_buf[64];   /* 端点2 DMA 落点 */
+/* PWM: period = sig_pwm_div ticks, high for sig_pwm_duty ticks (1..div-1).
+   The 100us tick quantizes the duty; div=5 gives 1 kHz with 20% steps. */
+volatile uint16_t sig_pwm_div = 5;
+volatile uint16_t sig_pwm_duty = 3;
+static uint16_t sig_pwm_cnt = 0;
+
+/* Burst: exactly sig_burst_total full periods (div ticks high + div ticks
+   low each), then the line is held high. 0 periods holds high immediately. */
+volatile uint16_t sig_burst_div = 5;
+volatile uint16_t sig_burst_total = 0;
+static uint16_t sig_burst_cnt = 0;
+static uint8_t  sig_burst_half = 0;   /* 0=high half, 1=low half */
+
+/* Forced level: sig_mode=4 keeps PA15 at sig_force_level. */
+volatile uint8_t sig_force_level = 1;
+
+/* ===== PC command reception (USB endpoint 2) ===== */
+__attribute__((aligned(4))) uint8_t cmd_dma_buf[64];   /* endpoint 2 DMA landing buffer */
 static char cmd_line[32];
 static uint8_t cmd_len = 0;
 
@@ -55,7 +71,7 @@ static void USB_SendBuf(const uint8_t *data, uint16_t len)
     }
 }
 
-/* 采样脚 PD0-7：上拉输入 */
+/* Capture pins PD0-7: pull-up inputs */
 static void Capture_GPIO_Init(void)
 {
     GPIO_InitTypeDef g = {0};
@@ -66,7 +82,7 @@ static void Capture_GPIO_Init(void)
     GPIO_Init(GPIOD, &g);
 }
 
-/* 软件 UART 引脚：PA15 普通推挽输出；PC6 诊断输出 */
+/* Software UART pin: PA15 plain push-pull output; PC6 diagnostic output */
 static void Signal_Init(void)
 {
     GPIO_InitTypeDef g = {0};
@@ -77,10 +93,10 @@ static void Signal_Init(void)
     g.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_Init(GPIOA, &g);
 
-    GPIOA->BSHR = GPIO_Pin_15;   /* 空闲高 */
+    GPIOA->BSHR = GPIO_Pin_15;   /* idle high */
     sig_active = 0;
 
-    /* 诊断：PC6 推挽输出，每个 OUT 包翻转一次 */
+    /* Diagnostic: PC6 push-pull output, toggles once per OUT packet */
     RCC_HB2PeriphClockCmd(RCC_HB2Periph_GPIOC, ENABLE);
     g.GPIO_Pin   = GPIO_Pin_6;
     g.GPIO_Speed = GPIO_Speed_Very_High;
@@ -101,12 +117,57 @@ void Signal_Start(void)
     sig_bit    = 0;
     sig_tick   = 0;
     sig_active = 1;
-    set_line(0);   /* 起始位 */
+    set_line(0);   /* start bit */
 }
 
 void Signal_Tick(void)
 {
-    /* 方波模式：分频翻转 PA15，freq = 10000/(2*div) */
+    /* Forced-level mode: the command already set PA15; nothing to do */
+    if(sig_mode == 4)
+    {
+        return;
+    }
+
+    /* Burst mode: output exactly sig_burst_total full periods, then hold
+       the line high. Every branch is a bounded counter/compare. */
+    if(sig_mode == 3)
+    {
+        if(sig_burst_total == 0)
+        {
+            set_line(1);
+            return;
+        }
+        if(sig_burst_div == 0) sig_burst_div = 1;
+        sig_burst_cnt++;
+        if(sig_burst_cnt >= sig_burst_div)
+        {
+            sig_burst_cnt = 0;
+            sig_burst_half ^= 1;
+            set_line(sig_burst_half ? 0 : 1);
+            if(sig_burst_half == 0)
+            {
+                /* A full period (high half + low half) completed */
+                sig_burst_total--;
+                if(sig_burst_total == 0) set_line(1);
+            }
+        }
+        return;
+    }
+
+    /* PWM mode: compare the tick counter against the duty ticks. The
+       100us tick quantizes the duty resolution. */
+    if(sig_mode == 2)
+    {
+        if(sig_pwm_div < 2) sig_pwm_div = 2;
+        if(sig_pwm_duty == 0 || sig_pwm_duty >= sig_pwm_div)
+            sig_pwm_duty = sig_pwm_div / 2;
+        sig_pwm_cnt++;
+        if(sig_pwm_cnt >= sig_pwm_div) sig_pwm_cnt = 0;
+        set_line((sig_pwm_cnt < sig_pwm_duty) ? 1 : 0);
+        return;
+    }
+
+    /* Square-wave mode: toggle PA15 after div ticks, freq = 10000/(2*div) */
     if(sig_mode == 1)
     {
         if(sig_square_div == 0) sig_square_div = 1;
@@ -121,7 +182,7 @@ void Signal_Tick(void)
 
     if(!sig_active)
     {
-        /* 空闲：计数到 2000 tick = 200ms，重发一次（在中断边界对齐） */
+        /* Idle: after 2000 ticks = 200 ms, resend once (aligned to the interrupt boundary) */
         sig_restart_cnt++;
         if(sig_restart_cnt >= 2000)
         {
@@ -159,18 +220,18 @@ void Signal_Tick(void)
     }
 }
 
-/* 由 TIM2 中断每 100us 调用：采样入环形缓冲 */
+/* Called by the TIM2 interrupt every 100us: store a sample in the ring buffer */
 void Capture_Tick(void)
 {
     uint16_t next = (ring_head + 1) & (RING_SIZE - 1);
-    if(next != ring_tail)   /* 缓冲未满 */
+    if(next != ring_tail)   /* buffer not full */
     {
         cap_ring[ring_head] = (uint8_t)(GPIOD->INDR & 0x00FF);
         ring_head = next;
     }
 }
 
-/* 端点2 收到一包数据（USB 中断里调用）：逐字符即时处理 */
+/* Endpoint 2 received a packet (called in the USB ISR): process char by char immediately */
 int Signal_HandleRx(const uint8_t *data, uint16_t len)
 {
     uint16_t i;
@@ -180,15 +241,38 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
         char c = (char)data[i];
         if(c == 'u' || c == 'U')
         {
-            /* u 立即切 UART，不等换行 */
+            /* u switches to UART immediately, no newline wait */
             sig_mode = 0;
             Signal_Start();
             last_cmd = 0;
+            cmd_len = 0;
             ret = 0;
+        }
+        else if(c == 'H' || c == 'h')
+        {
+            /* h forces the line high immediately */
+            sig_mode = 4;
+            sig_force_level = 1;
+            sig_active = 0;
+            set_line(1);
+            last_cmd = 4;
+            cmd_len = 0;
+            ret = 4;
+        }
+        else if(c == 'L' || c == 'l')
+        {
+            /* l forces the line low immediately */
+            sig_mode = 4;
+            sig_force_level = 0;
+            sig_active = 0;
+            set_line(0);
+            last_cmd = 4;
+            cmd_len = 0;
+            ret = 4;
         }
         else if(c == 'S' || c == 's')
         {
-            /* S 立即切方波（默认1kHz），开始累积数字，换行时再定频率 */
+            /* S switches to square wave immediately (default 1 kHz), starts collecting digits; the frequency is fixed at the newline */
             cmd_len = 0;
             cmd_line[cmd_len++] = 'S';
             sig_mode = 1;
@@ -196,21 +280,52 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
             last_cmd = 1;
             ret = 1;
         }
-        else if(c >= '0' && c <= '9')
+        else if(c == 'P' || c == 'p')
         {
-            if(cmd_len > 0 && cmd_line[0] == 'S' && cmd_len < sizeof(cmd_line) - 1)
+            /* P switches to PWM immediately (default 1 kHz / 50%); the real values arrive with the newline */
+            cmd_len = 0;
+            cmd_line[cmd_len++] = 'P';
+            sig_mode = 2;
+            sig_pwm_div = 5;
+            sig_pwm_duty = 3;
+            sig_pwm_cnt = 0;
+            last_cmd = 2;
+            ret = 2;
+        }
+        else if(c == 'B' || c == 'b')
+        {
+            /* B starts collecting the burst command; with no counts yet it holds the line high (0 pulses) */
+            cmd_len = 0;
+            cmd_line[cmd_len++] = 'B';
+            sig_mode = 3;
+            sig_burst_div = 5;
+            sig_burst_total = 0;
+            sig_burst_cnt = 0;
+            sig_burst_half = 0;
+            set_line(1);
+            last_cmd = 3;
+            ret = 3;
+        }
+        else if((c >= '0' && c <= '9') || c == ',')
+        {
+            if(cmd_len > 0 && (cmd_line[0] == 'S' || cmd_line[0] == 'P' || cmd_line[0] == 'B')
+               && cmd_len < sizeof(cmd_line) - 1)
                 cmd_line[cmd_len++] = c;
         }
         else if(c == '\r' || c == '\n')
         {
-            /* S 命令换行：解析设 div、切方波 */
-            if(cmd_len > 0 && cmd_line[0] == 'S')
+            /* S/P/B command newline: parse and apply the full command */
+            if(cmd_len > 0)
             {
+                int r;
                 cmd_line[cmd_len] = 0;
-                Cmd_Parse(cmd_line);   /* 只设置 div */
-                sig_mode = 1;
-                last_cmd = 1;
-                ret = 1;
+                r = Cmd_Parse(cmd_line);
+                if(r >= 0)
+                {
+                    sig_mode = (uint8_t)r;
+                    last_cmd = (uint8_t)r;
+                    ret = r;
+                }
                 cmd_len = 0;
             }
         }
@@ -218,28 +333,93 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
     return ret;
 }
 
-/* 解析一条命令：返回 1=切方波，0=切UART，-1=无效 */
+/* Parse the two numbers of "X<num>,<num>": *a stops at the comma, *b
+   follows it; numbers are 0 when absent. Returns 1 when a comma was seen. */
+static uint8_t parse_two(const char *p, uint32_t *a, uint32_t *b)
+{
+    uint8_t comma = 0;
+    *a = 0;
+    *b = 0;
+    while(*p >= '0' && *p <= '9') { *a = *a * 10 + (uint32_t)(*p - '0'); p++; }
+    if(*p == ',')
+    {
+        comma = 1;
+        p++;
+        while(*p >= '0' && *p <= '9') { *b = *b * 10 + (uint32_t)(*p - '0'); p++; }
+    }
+    return comma;
+}
+
+/* Parse one command: returns the new signal mode (0=UART, 1=square,
+   2=PWM, 3=burst, 4=forced level), or -1=invalid */
 int Cmd_Parse(const char *line)
 {
     if(line[0] == 'S' || line[0] == 's')
     {
-        /* S<频率Hz>：只设置 div，如 S1000 -> div=5 */
+        /* S<frequency Hz>: only sets div, e.g. S1000 -> div=5 */
         uint32_t f = 0;
         const char *p = line + 1;
         while(*p >= '0' && *p <= '9') { f = f * 10 + (uint32_t)(*p - '0'); p++; }
         if(f < 1) f = 1000;
-        if(f > 5000) f = 5000;          /* 10kHz 下最高 5kHz */
+        if(f > 5000) f = 5000;          /* max 5 kHz at 10 kHz sampling */
         sig_square_div = (uint16_t)(10000 / (2 * f));
         if(sig_square_div < 1) sig_square_div = 1;
-        last_cmd = 1;
         return 1;
+    }
+    if(line[0] == 'P' || line[0] == 'p')
+    {
+        /* P<frequency Hz>,<duty %>: duty resolution is one 100us tick */
+        uint32_t f = 0, duty = 50, period;
+        if(parse_two(line + 1, &f, &duty) == 0) duty = 50;
+        if(f < 1) f = 1000;
+        if(f > 5000) f = 5000;
+        if(duty < 1) duty = 1;
+        if(duty > 99) duty = 99;
+        period = 10000 / f;
+        if(period < 2) period = 2;
+        sig_pwm_div = (uint16_t)period;
+        sig_pwm_duty = (uint16_t)((duty * period + 50) / 100);
+        if(sig_pwm_duty < 1) sig_pwm_duty = 1;
+        if(sig_pwm_duty >= sig_pwm_div) sig_pwm_duty = (uint16_t)(sig_pwm_div - 1);
+        sig_pwm_cnt = 0;
+        return 2;
+    }
+    if(line[0] == 'B' || line[0] == 'b')
+    {
+        /* B<frequency Hz>,<pulse count>: output exactly count full
+           periods (high half + low half each), then hold the line high */
+        uint32_t f = 0, count = 0;
+        parse_two(line + 1, &f, &count);
+        if(f < 1) f = 1000;
+        if(f > 5000) f = 5000;
+        if(count > 65535) count = 65535;
+        sig_burst_div = (uint16_t)(10000 / (2 * f));
+        if(sig_burst_div < 1) sig_burst_div = 1;
+        sig_burst_total = (uint16_t)count;
+        sig_burst_cnt = 0;
+        sig_burst_half = 0;
+        set_line(1);
+        return 3;
     }
     if(line[0] == 'U' || line[0] == 'u')
     {
         sig_mode = 0;
         Signal_Start();
-        last_cmd = 0;
         return 0;
+    }
+    if(line[0] == 'H' || line[0] == 'h')
+    {
+        sig_force_level = 1;
+        sig_active = 0;
+        set_line(1);
+        return 4;
+    }
+    if(line[0] == 'L' || line[0] == 'l')
+    {
+        sig_force_level = 0;
+        sig_active = 0;
+        set_line(0);
+        return 4;
     }
     return -1;
 }
@@ -264,7 +444,7 @@ void Hardware(void)
 
     while(1)
     {
-        /* 从环形缓冲取数据，攒满一批发送；USB 阻塞不影响中断采样 */
+        /* Take data from the ring buffer and send it in batches; a blocking USB send does not affect ISR sampling */
         while(ring_tail != ring_head)
         {
             batch_buf[batch_cnt++] = cap_ring[ring_tail];

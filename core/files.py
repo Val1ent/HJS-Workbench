@@ -1,13 +1,32 @@
 # -*- coding: utf-8 -*-
-"""Capture file support: .sr/.bin read, .sr write, rate parsing, unified open."""
+"""Capture file support: .sr/.bin read, .sr write, rate parsing, unified open.
+
+The sample rate of serial captures and the .sr probe list come from the
+current device backend; the CH32 backend produces a byte-identical .sr
+file to the previous hard-coded output.
+"""
 import os
 import zipfile
 
-SERIAL_RATE = 10000
+from .hal import current_backend
+from .i18n import _
+
+
+def serial_rate():
+    """Current backend sample rate in Hz."""
+    return current_backend().capabilities.sample_rate
+
+
+def format_rate(rate):
+    """Format a rate in Hz the way sigrok metadata expects ('10 kHz')."""
+    if rate and rate % 1000 == 0:
+        return "{} kHz".format(int(rate // 1000))
+    return "{} Hz".format(int(rate))
 
 
 def parse_rate_str(s):
-    """'10 kHz' / '1 MHz' / '1000' 之类的字符串 → 采样率 Hz 数值。"""
+    """Convert strings like '10 kHz' / '1 MHz' / '1000' to a sample-rate
+value in Hz."""
     s = str(s).strip().lower()
     num = ""
     for ch in s:
@@ -26,7 +45,8 @@ def parse_rate_str(s):
 
 
 def read_sr(path):
-    """读取 sigrok .sr 压缩包（capture3.py 的输出格式）→ (rate, samples)。"""
+    """Read a sigrok .sr zip archive (the capture3.py output format)
+-> (rate, samples)."""
     with zipfile.ZipFile(path) as z:
         meta = z.read("metadata").decode("utf-8", "replace")
         rate = None
@@ -39,26 +59,47 @@ def read_sr(path):
 
 
 def read_bin(path, rate):
-    """读取原始 8 通道字节流 → (rate, samples)。"""
+    """Read a raw one-byte-per-sample channel stream -> (rate, samples)."""
     with open(path, "rb") as f:
         data = f.read()
     return rate, list(data)
 
 
-RATE_STR = "10 kHz"
+def write_sr(path, data, channel_count=None, channel_names=None):
+    """Write a sigrok .sr zip archive.
 
-
-def write_sr(path, data):
+    The probe list, sample rate, and unit size default to the current
+    backend's capabilities; ``channel_count``/``channel_names`` may be
+    passed explicitly but must still match the backend's real
+    capabilities (any other value raises instead of being fabricated).
+    For the CH32 backend the default output is byte-identical to the
+    previous .sr format.
+    """
+    caps = current_backend().capabilities
+    count = caps.channel_count if channel_count is None else channel_count
+    names = list(caps.channel_names if channel_names is None
+                 else channel_names)
+    current_backend().validate_config(channels=count)
+    if len(names) != count:
+        raise ValueError(
+            _("Channel names do not match the channel count ({names} names, "
+              "{count} channels).").format(names=len(names), count=count))
+    if channel_names is not None and list(channel_names) != list(
+            caps.channel_names):
+        raise ValueError(
+            _("Unsupported channel names for the {name} backend: {names}"
+              ).format(name=caps.display_name,
+                       names=", ".join(str(n) for n in channel_names)))
     metadata = (
         "[global]\nsigrok version=0.7.2\n\n[device 1]\n"
         "capturefile=logic-1\n"
-        "total probes=8\n"
-        f"samplerate={RATE_STR}\n"
+        "total probes={count}\n"
+        "samplerate={rate}\n"
         "total analog=0\n"
-        "probe1=D0\nprobe2=D1\nprobe3=D2\nprobe4=D3\n"
-        "probe5=D4\nprobe6=D5\nprobe7=D6\nprobe8=D7\n"
-        "unitsize=1\n"
-    )
+        + "".join("probe{index}={name}\n".format(
+            index=i + 1, name=names[i]) for i in range(count))
+        + "unitsize={unit}\n".format(unit=caps.unit_size)
+    ).format(count=count, rate=format_rate(caps.sample_rate))
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("version", "2")
         z.writestr("metadata", metadata)
@@ -66,24 +107,30 @@ def write_sr(path, data):
 
 
 def acquire_file(path):
-    """读取 .sr / .bin 采集文件，返回 (rate, samples)。
+    """Read a .sr / .bin capture file; return (rate, samples).
 
-    .sr 为 sigrok 压缩包（采样率从 metadata 读取）；
-    .bin 为原始 8 通道字节流（采样率按固件值 10000 Hz）。
-    其他扩展名或读取失败时抛出带可读信息的异常。
+    .sr is a sigrok zip archive (sample rate read from its metadata);
+    .bin is a raw one-byte-per-sample channel stream (sample rate uses
+    the current backend's sample rate).
+    Other extensions or read failures raise an exception with a readable
+    message.
     """
     ext = os.path.splitext(path)[1].lower()
     if ext not in (".sr", ".bin"):
         raise ValueError(
-            f"不支持的文件类型：{ext or '（无扩展名）'}。请选择 .sr 或 .bin 文件。"
-        )
+            _("Unsupported file type: {ext}. Please choose a .sr or .bin file."
+              ).format(ext=ext or "(no extension)"))
     try:
         if ext == ".sr":
             rate, samples = read_sr(path)
         else:
-            rate, samples = read_bin(path, SERIAL_RATE)
+            rate, samples = read_bin(path, serial_rate())
     except Exception as exc:
-        raise ValueError(f"无法读取文件 {path}：{exc}") from exc
+        raise ValueError(
+            _("Cannot read file {path}: {error}").format(path=path, error=exc)
+        ) from exc
     if rate is None:
-        raise ValueError(f"无法读取文件 {path}：文件中缺少采样率信息。")
+        raise ValueError(
+            _("Cannot read file {path}: the file has no sample-rate "
+              "information.").format(path=path))
     return rate, list(samples)

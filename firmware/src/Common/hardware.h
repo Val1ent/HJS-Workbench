@@ -31,6 +31,11 @@ int  Cmd_Parse(const char *line);
 extern uint8_t cmd_dma_buf[64];
 extern volatile uint8_t sig_mode;
 extern volatile uint16_t sig_square_div;
+extern volatile uint16_t sig_pwm_div;
+extern volatile uint16_t sig_pwm_duty;
+extern volatile uint16_t sig_burst_div;
+extern volatile uint16_t sig_burst_total;
+extern volatile uint8_t sig_force_level;
 extern volatile uint8_t last_cmd;
 
 #ifdef __cplusplus

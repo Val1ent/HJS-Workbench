@@ -5,12 +5,14 @@ from ..model import channel_bits
 from ..registry import register
 
 # ======================================================================
-# 5. HC-SR04 超声波测距（TRIG 触发，ECHO 高电平时间 → 距离）
+# 5. HC-SR04 ultrasonic ranging (TRIG triggers, ECHO high time ->
+#    distance)
 # ======================================================================
 def decode_ultrasonic(samples, rate, trig_ch=0, echo_ch=1):
     """
-    TRIG 上升沿 = 一次测量开始；随后 ECHO 高电平时间 = 回波时间。
-    距离 cm = 回波秒 * 340m/s / 2 * 100。量程 100us~50ms（约 1.7cm~8.5m）。
+    TRIG rising edge = start of one measurement; the ECHO high time that
+    follows = echo time. distance cm = echo_s * 340 m/s / 2 * 100.
+    Range 100us-50 ms (about 1.7 cm-8.5 m).
     """
     trig = channel_bits(samples, trig_ch)
     echo = channel_bits(samples, echo_ch)
@@ -21,10 +23,10 @@ def decode_ultrasonic(samples, rate, trig_ch=0, echo_ch=1):
     while i < n - 1:
         if trig[i] == 0 and trig[i + 1] == 1:
             tr = i + 1
-            events.append(event(tr * dt, trig_ch, "TRIG", "触发脉冲"))
+            events.append(event(tr * dt, trig_ch, "TRIG", "trigger pulse"))
             er = None
             j = tr
-            while j < n - 1:                       # 找 ECHO 上升沿
+            while j < n - 1:                       # Find the ECHO rising edge
                 if echo[j] == 0 and echo[j + 1] == 1:
                     er = j + 1
                     break
@@ -32,7 +34,7 @@ def decode_ultrasonic(samples, rate, trig_ch=0, echo_ch=1):
             if er is not None:
                 ef = n
                 j = er
-                while j < n - 1:                   # 找 ECHO 下降沿
+                while j < n - 1:                   # Find the ECHO falling edge
                     if echo[j] == 1 and echo[j + 1] == 0:
                         ef = j + 1
                         break
@@ -41,10 +43,10 @@ def decode_ultrasonic(samples, rate, trig_ch=0, echo_ch=1):
                 cm = dur * 340.0 / 2.0 * 100.0
                 if 0.0001 <= dur <= 0.05:
                     events.append(event(er * dt, echo_ch, "DISTANCE",
-                                        f"回波={dur * 1e6:.0f}us 距离≈{cm:.1f}cm"))
+                                        f"echo={dur * 1e6:.0f}us distance={cm:.1f}cm"))
                 else:
                     events.append(event(er * dt, echo_ch, "DIST_ERR",
-                                        f"回波={dur * 1e6:.0f}us 超出量程"))
+                                        f"echo={dur * 1e6:.0f}us out of range"))
                 i = er
             else:
                 i = tr
@@ -54,7 +56,8 @@ def decode_ultrasonic(samples, rate, trig_ch=0, echo_ch=1):
     return events
 
 def make_ultrasonic_test(rate):
-    """两次测量：回波 1.0ms→≈17.0cm；回波 1.5ms→≈25.5cm（声速 340m/s）。"""
+    """Two measurements: 1.0 ms echo -> ~17.0 cm; 1.5 ms echo -> ~25.5 cm
+(speed of sound 340 m/s)."""
     n = int(0.05 * rate)
     trig = [0] * n
     echo = [0] * n
@@ -66,9 +69,9 @@ def make_ultrasonic_test(rate):
             arr[i] = val
 
     put(trig, 0.003, 0.0031, 1)
-    put(echo, 0.004, 0.005, 1)          # 1.0ms 回波 → 17.0cm
+    put(echo, 0.004, 0.005, 1)          # 1.0 ms echo -> 17.0 cm
     put(trig, 0.030, 0.0301, 1)
-    put(echo, 0.031, 0.0325, 1)         # 1.5ms 回波 → 25.5cm
+    put(echo, 0.031, 0.0325, 1)         # 1.5 ms echo -> 25.5 cm
     return [(trig[i]) | (echo[i] << 1) for i in range(n)]
 
-register("ultrasonic", decode_ultrasonic, make_ultrasonic_test, "超声测距HC-SR04")
+register("ultrasonic", decode_ultrasonic, make_ultrasonic_test, "Ultrasonic HC-SR04")

@@ -5,27 +5,35 @@ from ..model import channel_bits
 from ..registry import register
 
 # ======================================================================
-# 慢速 I2C（SCL=D1，SDA=D0；空闲 SCL=1、SDA=1；MSB 先发，9 位一组）
+# Slow I2C (SCL=D1, SDA=D0; idle SCL=1, SDA=1; MSB first, 9 bits per
+# group)
 # ======================================================================
 def decode_i2c(samples, rate, scl_ch=1, sda_ch=0):
     """
-    慢速 I2C 解码（10kHz 采样适合 SCL<=1kHz）：
-      START/STOP：SCL 为高时 SDA 跳变（1->0 起始，0->1 停止）；
-      数据：在 SCL 上升沿采样 SDA，每 9 位一组（8 数据 MSB 先 + ACK）；
-      第一组 = 7 位从机地址 + R/W（0=写 W，1=读 R），ACK 位 0=ACK、1=NACK。
+    Slow I2C decode (10 kHz sampling suits SCL <= 1 kHz):
+      START/STOP: SDA transitions while SCL is high (1->0 start,
+      0->1 stop);
+      Data: sample SDA on SCL rising edges, in groups of 9 bits
+      (8 data bits MSB first + ACK);
+      First group = 7-bit slave address + R/W (0=write W, 1=read R),
+      ACK bit 0=ACK, 1=NACK.
     """
     scl = channel_bits(samples, scl_ch)
     sda = channel_bits(samples, sda_ch)
     n = len(samples)
     dt = 1.0 / rate
-    marks = []                                   # (索引, 类型, SDA采样值)
-    for i in range(1, n):                        # 总线条件：SCL 高时 SDA 跳变
+    marks = []                                   # (index, kind, SDA sample value)
+    for i in range(1, n):                        # Bus conditions: SDA
+                                                # transitions while SCL is high
         if sda[i] != sda[i - 1] and scl[i] == 1:
             marks.append((i, "STOP" if sda[i] == 1 else "START", None))
-    for i in range(1, n):                        # 数据采样点：SCL 上升沿
+    for i in range(1, n):                        # Data sampling points: SCL
+                                                # rising edges
         if scl[i - 1] == 0 and scl[i] == 1:
             marks.append((i, "SCLK", sda[i]))
-    marks.sort(key=lambda m: (m[0], m[1] != "SCLK"))   # 同采样点先处理总线条件
+    marks.sort(key=lambda m: (m[0], m[1] != "SCLK"))   # At the same sample
+                                                       # point, handle the bus
+                                                       # condition first
 
     events = []
     in_trans = False
@@ -37,23 +45,25 @@ def decode_i2c(samples, rate, scl_ch=1, sda_ch=0):
             in_trans = True
             bits = []
             first_byte = True
-            events.append(event(idx * dt, sda_ch, "START", "起始条件"))
+            events.append(event(idx * dt, sda_ch, "START", "start condition"))
         elif kind == "STOP":
             if in_trans:
-                events.append(event(idx * dt, sda_ch, "STOP", "停止条件"))
+                events.append(event(idx * dt, sda_ch, "STOP", "stop condition"))
             in_trans = False
             bits = []
         elif in_trans:
             if not bits:
-                t_byte = idx * dt                  # 本字节首 bit 时刻
+                t_byte = idx * dt                  # Time of the first bit of
+                                                  # this byte
             bits.append(val)
             if len(bits) == 9:
                 val8 = 0
-                for b in bits[:8]:                 # MSB 先发
+                for b in bits[:8]:                 # MSB first
                     val8 = (val8 << 1) | b
                 ack = "ACK" if bits[8] == 0 else "NACK"
                 if first_byte:
-                    addr = val8 >> 1               # 高 7 位为从机地址
+                    addr = val8 >> 1               # Upper 7 bits = slave
+                                                  # address
                     rw = "R" if (val8 & 1) else "W"
                     events.append(event(t_byte, sda_ch, "ADDR",
                                         f"0x{addr:02X} {rw} {ack}"))
@@ -67,14 +77,17 @@ def decode_i2c(samples, rate, scl_ch=1, sda_ch=0):
 
 def make_i2c_test(rate):
     """
-    慢速 I2C 写传输：START → 地址 0x48+W（=0x90，ACK）→ 数据 0x55（ACK）→ STOP。
-    SCL 周期 1000us（1kHz，10kHz 采样下高/低半周期各 5 个采样点）。
-    SDA 用 D0（sda_ch=0），SCL 用 D1（scl_ch=1），按位或合并互不覆盖。
+    Slow I2C write transaction: START -> address 0x48+W (=0x90, ACK) ->
+    data 0x55 (ACK) -> STOP.
+    SCL period 1000us (1 kHz; with 10 kHz sampling each half period is
+    5 sample points). SDA uses D0 (sda_ch=0), SCL uses D1 (scl_ch=1);
+    the bitwise OR merge keeps the two channels from overwriting each
+    other.
     """
     n = int(0.05 * rate)            # 50ms
-    scl = [1] * n                   # 空闲 SCL=1
-    sda = [1] * n                   # 空闲 SDA=1
-    T = 0.001                       # 1000us 时钟周期
+    scl = [1] * n                   # Idle SCL=1
+    sda = [1] * n                   # Idle SDA=1
+    T = 0.001                       # 1000us clock period
     half = 0.0005
 
     def put(arr, t0, t1, val):
@@ -87,23 +100,26 @@ def make_i2c_test(rate):
         nonlocal t
         data = [(value >> (7 - b)) & 1 for b in range(8)]
         for b in data:
-            put(scl, t, t + half, 0)        # SCL 低半周期
-            put(sda, t, t + T, b)           # SDA 在 SCL 低时建立
-            put(scl, t + half, t + T, 1)    # SCL 高半周期（采样点）
+            put(scl, t, t + half, 0)        # SCL low half period
+            put(sda, t, t + T, b)           # SDA set up while SCL is low
+            put(scl, t + half, t + T, 1)    # SCL high half period (sampling
+                                            # point)
             t += T
-        put(scl, t, t + half, 0)            # 第 9 个时钟：ACK 位
+        put(scl, t, t + half, 0)            # 9th clock: ACK bit
         put(sda, t, t + T, ack)
         put(scl, t + half, t + T, 1)
         t += T
 
     t = 0.002
-    put(sda, t, t + 0.0004, 0)              # START：SCL 高时 SDA 高->低
+    put(sda, t, t + 0.0004, 0)              # START: SDA high->low while SCL
+                                            # is high
     t += 0.0004
-    send_byte(0x90)                         # 地址 0x48 + W(0)
-    send_byte(0x55)                         # 数据 0x55
-    put(sda, t, t + 0.0004, 1)              # STOP：SCL 高时 SDA 低->高
+    send_byte(0x90)                         # Address 0x48 + W(0)
+    send_byte(0x55)                         # Data 0x55
+    put(sda, t, t + 0.0004, 1)              # STOP: SDA low->high while SCL
+                                            # is high
 
-    # 合并两通道：SDA=D0，SCL=D1
+    # Merge the two channels: SDA=D0, SCL=D1
     return [(scl[i] << 1) | sda[i] for i in range(n)]
 
-register("i2c", decode_i2c, make_i2c_test, "慢速I2C")
+register("i2c", decode_i2c, make_i2c_test, "Slow I2C")

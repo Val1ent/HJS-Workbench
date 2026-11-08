@@ -56,8 +56,8 @@ void TIM2_Init( void )
 
     TIM_DeInit( TIM2 );
 
-    /* Time base configuration: 10kHz 采样率（稳定版）
-       PSC 把 100MHz 降到 1MHz(1us/tick)，Period=100 -> 10kHz */
+    /* Time base configuration: 10 kHz sampling rate (stable build)
+       PSC divides 100 MHz down to 1 MHz (1us/tick), Period=100 -> 10 kHz */
     TIM_TimeBaseStructure.TIM_Period = 100 - 1;
     TIM_TimeBaseStructure.TIM_Prescaler = SystemCoreClock / 1000000 - 1;
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
@@ -550,10 +550,10 @@ void TIM2_IRQHandler( void )
     Uart.Rx_TimeOut++;
     Uart.USB_Up_TimeOut++;
 
-    /* 采样入环形缓冲（先采样，再驱动信号） */
+    /* Store the sample in the ring buffer (sample first, then drive the signal) */
     Capture_Tick();
 
-    /* 驱动自测 UART 发送 */
+    /* Drive the self-test UART transmission */
     Signal_Tick();
 
     /* clear status */

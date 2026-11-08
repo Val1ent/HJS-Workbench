@@ -3,12 +3,12 @@
 
 
 def event(t, ch, typ, text):
-    """构造统一事件。"""
+    """Build a unified event."""
     return {"t": float(t), "ch": int(ch), "type": str(typ), "text": str(text)}
 
 
 def merge_events(*lists):
-    """合并多路事件并按时间排序。"""
+    """Merge multiple event lists and sort them by time."""
     out = []
     for L in lists:
         out.extend(L)

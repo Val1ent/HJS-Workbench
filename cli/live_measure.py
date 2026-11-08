@@ -1,40 +1,50 @@
 # -*- coding: utf-8 -*-
-"""Streaming measurement screen: per-channel freq/duty, D0 details, edge counts."""
+"""Streaming measurement screen: per-channel freq/duty, first-channel details, edge counts."""
 import time
 from collections import deque
 
 import core
+from core.hal import BackendConnectionError
+from core.i18n import _
 from . import console
 
-SAMPLE_RATE = 10000
-DT          = 1.0 / SAMPLE_RATE
-WINDOW      = 3000
-NCH         = 8
+WINDOW = 3000
 
 
 def run():
-    """三合一实时测量：多通道频率/占空比 + D0 详细指标 + 边沿触发计数。"""
+    """Three-in-one live measurement: per-channel frequency/duty + main
+channel detail metrics + edge-triggered counters. Channel count, names,
+and sample rate come from the current backend."""
+    caps = core.current_backend().capabilities
+    sample_rate = caps.sample_rate
+    nch = caps.channel_count
+
     port = console.choose_port()
     if port is None:
         return
-    ser = console.open_serial(port)
+    try:
+        ser = console.open_serial(port)
+    except BackendConnectionError as e:
+        print(_("Failed to open the serial port (close the serial monitor and retry): {error}"
+                ).format(error=e))
+        return
 
-    raw = deque(maxlen=WINDOW)          # 原始字节（8通道）
-    rise_cnt = [0] * NCH                # 边沿触发累计
-    fall_cnt = [0] * NCH
+    raw = deque(maxlen=WINDOW)          # Raw bytes (one snapshot per byte)
+    rise_cnt = [0] * nch                # Edge-triggered cumulative counts
+    fall_cnt = [0] * nch
     prev = None
     last_show = 0
-    print(f"\n已连接 {port}，实时测量中 ...（Ctrl+C 退出）\n")
+    print(_("\nConnected to {port}, measuring live ... (Ctrl+C to exit)\n").format(port=port))
 
     try:
         while True:
             n = ser.in_waiting
             if n:
-                chunk = ser.read(n)
+                chunk = ser.read_available()
                 for b in chunk:
-                    # 边沿触发：与上一字节逐通道比较
+                    # Edge trigger: compare with the previous byte channel by channel
                     if prev is not None:
-                        for ch in range(NCH):
+                        for ch in range(nch):
                             p = (prev >> ch) & 1
                             c = (b >> ch) & 1
                             if p == 0 and c == 1: rise_cnt[ch] += 1
@@ -47,40 +57,44 @@ def run():
             if time.time() - last_show >= 0.5 and len(raw) >= 100:
                 last_show = time.time()
                 console.clear_screen()
-                print("===== 数字调试助手 · 三合一实时测量 =====")
-                print(f"采样率: {SAMPLE_RATE} Hz   窗口: {len(raw)} 点\n")
+                print(_("===== HJS-Workbench - Three-in-one live measurement ====="))
+                print(_("Sample rate: {rate} Hz   Window: {n} points\n").format(
+                    rate=sample_rate, n=len(raw)))
 
-                # 1) 多通道频率
-                print("-- 多通道频率 --")
+                # 1) Multi-channel frequency
+                print(_("-- Multi-channel frequency --"))
                 results = []
-                for ch in range(NCH):
+                for ch in range(nch):
                     bits = [(b >> ch) & 1 for b in raw]
-                    results.append(core.measure(bits))
+                    results.append(core.measure(bits, sample_rate))
                     if results[ch]:
-                        print(f"  D{ch}: {results[ch]['freq']:8.1f} Hz   占空比 {results[ch]['duty']:5.1f}%")
+                        print(_("  {ch}: {freq:8.1f} Hz   Duty {duty:5.1f}%").format(
+                            ch=caps.channel_names[ch], freq=results[ch]['freq'],
+                            duty=results[ch]['duty']))
                     else:
-                        print(f"  D{ch}:       --  (无周期信号)")
+                        print(f"  {caps.channel_names[ch]}:       --  " + _("(no periodic signal)"))
 
-                # 2) 主通道 D0 详细测量
+                # 2) Main channel detailed measurement
                 m = results[0]
-                print("\n-- D0 详细测量 --")
+                print(_("\n-- {ch} detailed measurement --").format(ch=caps.channel_names[0]))
                 if m:
-                    print(f"  频率      : {m['freq']:.1f} Hz")
-                    print(f"  周期      : {m['period']*1000:.3f} ms  "
-                          f"(min {m['pmin']*1000:.3f} / max {m['pmax']*1000:.3f})")
-                    print(f"  高电平脉宽: {m['high']*1000:.3f} ms")
-                    print(f"  低电平脉宽: {m['low']*1000:.3f} ms")
-                    print(f"  占空比    : {m['duty']:.1f} %   ({m['cycles']} 周期平均)")
+                    print(_("  Frequency      : {freq:.1f} Hz").format(freq=m['freq']))
+                    print(_("  Period         : {period:.3f} ms  (min {pmin:.3f} / max {pmax:.3f})").format(
+                        period=m['period']*1000, pmin=m['pmin']*1000, pmax=m['pmax']*1000))
+                    print(_("  High pulse     : {high:.3f} ms").format(high=m['high']*1000))
+                    print(_("  Low pulse      : {low:.3f} ms").format(low=m['low']*1000))
+                    print(_("  Duty           : {duty:.1f} %   ({cycles} cycles averaged)").format(
+                        duty=m['duty'], cycles=m['cycles']))
                 else:
-                    print("  信号不足")
+                    print(_("  Signal insufficient"))
 
-                # 3) 边沿触发计数
-                print("\n-- 边沿触发累计 --")
-                print("  通道   上升沿   下降沿")
-                for ch in range(NCH):
-                    print(f"   D{ch}   {rise_cnt[ch]:6d}   {fall_cnt[ch]:6d}")
+                # 3) Edge-triggered counters
+                print(_("\n-- Edge-triggered totals --"))
+                print(_("  Channel   Rising   Falling"))
+                for ch in range(nch):
+                    print(f"   {caps.channel_names[ch]}   {rise_cnt[ch]:6d}   {fall_cnt[ch]:6d}")
     except KeyboardInterrupt:
         pass
     finally:
         ser.close()
-        print("\n已退出")
+        print(_("\nExited"))

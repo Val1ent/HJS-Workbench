@@ -1,22 +1,33 @@
 # -*- coding: utf-8 -*-
 """
-信号发生器控制台：通过 USB CDC 给设备发命令
-  输入频率数字(如 1000) -> 设备输出该频率方波 (范围 1~5000Hz)
-  输入 u                -> 切回软件 UART（发 Hello CH32）
-  输入 q                -> 退出
-"""
-from . import console
+Signal generator console: send commands to the device over USB CDC
+  Enter a frequency number (e.g. 1000) -> the device outputs a square
+  wave at that frequency (range 1-5000 Hz)
+  Enter u                          -> switch back to software UART
+                                       (sends Hello CH32)
+  Enter q                          -> quit
 
-SIGNAL_BAUD = 921600
+The port is opened at the current backend's declared signal baud rate.
+"""
+import core
+from core.hal import BackendConnectionError
+from core.i18n import _
+from . import console
 
 
 def run():
     port = console.choose_port()
     if port is None:
         return
-    ser = console.open_serial(port, baud=SIGNAL_BAUD)
-    print(f"已连接 {port}")
-    print("输入 频率数字(1~5000) 发方波；u 切 UART；q 退出\n")
+    caps = core.current_backend().capabilities
+    try:
+        ser = console.open_serial(port, baud=caps.signal_baud)
+    except BackendConnectionError as e:
+        print(_("Failed to open the serial port (close the serial monitor and retry): {error}"
+                ).format(error=e))
+        return
+    print(_("Connected to {port}").format(port=port))
+    print(_("Enter a frequency (1-5000) for a square wave; u = switch to UART; q = quit\n"))
 
     while True:
         try:
@@ -29,12 +40,12 @@ def run():
             break
         if cmd.lower() == 'u':
             ser.write(b"U\n")
-            print("-> 切到 UART 模式")
+            print(_("-> switched to UART mode"))
         elif cmd.isdigit():
             ser.write(("S" + cmd + "\n").encode())
-            print(f"-> 方波 {cmd} Hz")
+            print(_("-> square wave {hz} Hz").format(hz=cmd))
         else:
-            print("请输入数字频率，或 u / q")
+            print(_("Enter a numeric frequency, or u / q"))
 
     ser.close()
-    print("已退出")
+    print(_("Exited"))

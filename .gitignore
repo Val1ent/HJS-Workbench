@@ -5,6 +5,10 @@ __pycache__/
 .venv/
 venv/
 
+# PyInstaller packaging output
+build/
+dist/
+
 # Runtime logs / captures (keep examples, ignore local runs)
 host/analyzer_log.csv
 *.sr.tmp

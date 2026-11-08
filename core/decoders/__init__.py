@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 """Protocol decoder collection.
 
-Importing this subpackage imports all nine protocol modules in registration
-order and thereby populates the DECKS registry.
+Importing this subpackage imports all nineteen protocol modules in
+registration order and thereby populates the DECKS registry.
 """
-from . import nec, servo, i2c, spi, stepper, encoder, rc5, ultrasonic, fan  # noqa: F401
+from . import (  # noqa: F401
+    nec, servo, i2c, spi, stepper, encoder, rc5, ultrasonic, fan,
+    dht11, onewire, swd, modbus, wiegand, hd44780, sirc, ds1302,
+    manchester, nmea,
+)
 
-__all__ = ["nec", "servo", "i2c", "spi", "stepper", "encoder", "rc5",
-           "ultrasonic", "fan"]
+__all__ = [
+    "nec", "servo", "i2c", "spi", "stepper", "encoder", "rc5",
+    "ultrasonic", "fan", "dht11", "onewire", "swd", "modbus",
+    "wiegand", "hd44780", "sirc", "ds1302", "manchester", "nmea",
+]

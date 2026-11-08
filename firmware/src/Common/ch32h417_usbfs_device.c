@@ -254,11 +254,11 @@ void USBFS_IRQHandler( void )
                         }
                         break;
 
-                    /* end-point 2 data out interrupt：逐字符即时处理（内部已切模式） */
+                    /* end-point 2 data out interrupt: process char by char immediately (mode switched internally) */
                     case USBFS_UIS_TOKEN_OUT | DEF_UEP2:
                         USBFSD->UEP2_RX_CTRL ^= USBFS_UEP_R_TOG;
                         Signal_HandleRx(cmd_dma_buf, USBFSD->RX_LEN);
-                        /* DMA 固定回 cmd_dma_buf，等下一包 */
+                        /* DMA always lands back in cmd_dma_buf, waiting for the next packet */
                         USBFSD->UEP2_DMA = (uint32_t)(uint8_t *)&cmd_dma_buf[ 0 ];
                         break;
 

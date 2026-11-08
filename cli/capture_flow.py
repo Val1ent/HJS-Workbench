@@ -4,39 +4,41 @@ import os
 import time
 from collections import Counter
 
-import serial
-
 import core
+from core.hal import BackendConnectionError
+from core.i18n import _
 from . import console
 
 POINTS = 3000
 
 
 def run():
-    """采集流程：选口 -> 单次采集 POINTS 点 -> 保存 .sr 文件；q 返回主菜单。"""
+    """Capture flow: pick a port -> capture POINTS points once -> save a
+.sr file; q returns to the main menu."""
     while True:
         port = console.choose_port()
         if port is None:
             return
-        print("2 秒后开始采集，请确认 A15 已接到 D0 ...")
+        print(_("Capture starts in 2 seconds; confirm A15 is connected to D0 ..."))
         time.sleep(2)
-        print(f"正在从 {port} 采集 {POINTS} 点 ...")
+        print(_("Capturing {n} points from {port} ...").format(n=POINTS, port=port))
         t0 = time.time()
         try:
             _rate, data = core.acquire_serial(port, POINTS)
-        except serial.SerialException as e:
-            print("打开串口失败(关掉串口助手再试):", e)
+        except BackendConnectionError as e:
+            print(_("Failed to open the serial port (close the serial monitor and retry): {error}"
+                    ).format(error=e))
             continue
         except Exception as e:
-            print("数据不足。", e)
-            print("- 若一直 in_waiting=0：设备没往这口发，确认选的是 USB-FS 口、A15->D0 接好、串口助手已关闭；")
-            print("- 可拔插底部 USB 线、按 RESET 后重选端口再试。")
+            print(_("Not enough data."), e)
+            print(_("- If in_waiting stays 0: the device is not sending on this port; check that you picked the USB-FS port, that A15->D0 is wired, and that the serial monitor is closed;"))
+            print(_("- Try unplugging and replugging the bottom USB cable or pressing RESET, then pick the port again."))
         else:
-            print(f"共收到 {len(data)} 字节，用时 {time.time()-t0:.1f}s")
+            print(_("Received {n} bytes in {t:.1f} s").format(n=len(data), t=time.time()-t0))
             top = Counter(data).most_common(5)
-            print("最常见字节:", [(hex(k), v) for k, v in top])
+            print(_("Most common bytes:"), [(hex(k), v) for k, v in top])
             fn = os.path.join(os.getcwd(), f"capture_{int(time.time())}.sr")
             core.write_sr(fn, data)
-            print("已生成:", fn)
-        if input("\n回车再采一屏，q 退出: ").strip().lower() == "q":
+            print(_("Created:"), fn)
+        if input(_("\nEnter to capture another screen, q to quit: ")).strip().lower() == "q":
             return

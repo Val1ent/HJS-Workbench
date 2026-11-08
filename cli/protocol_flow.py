@@ -1,49 +1,63 @@
 # -*- coding: utf-8 -*-
 """
-统一协议分析流程（对应 proto_view.py）：
-  1) 实时串口：从底部 USB-FS 口采集，实时解码（与真实/自测信号配合）
-  2) 离线演示：用各解码器自带的测试波形演示，无需任何硬件
+Unified protocol analysis flow (matches proto_view.py):
+  1) Live serial: capture from the device data port and decode live
+     (works with real or self-test signals)
+  2) Offline demo: use each decoder's built-in test waveform, no
+     hardware required
+
+The sample rate for the test waveforms comes from the current backend.
 """
 import time
 from collections import deque
 
 import core
+from core.hal import BackendConnectionError
+from core.i18n import _
 from core.registry import print_events
 from . import console
 
-SAMPLE_RATE = 10000
 WINDOW = 3000
 
 
 def offline_demo(name):
-    print(f"\n===== 离线演示：{name}（自带测试波形，无需硬件）=====")
-    samples = core.DECKS[name]["make"](SAMPLE_RATE)
-    events = core.DECKS[name]["decode"](samples, SAMPLE_RATE)
+    rate = core.current_backend().capabilities.sample_rate
+    print(_("\n===== Offline demo: {name} (built-in test waveform, no hardware) ====="
+            ).format(name=name))
+    samples = core.DECKS[name]["make"](rate)
+    events = core.DECKS[name]["decode"](samples, rate)
     print_events(events)
-    print(f"\n（共 {len(samples)} 个采样点，{len(events)} 个事件）")
+    print(_("\n({n} sample points, {m} events)").format(n=len(samples), m=len(events)))
 
 
 def live_mode(name):
+    rate = core.current_backend().capabilities.sample_rate
     port = console.choose_port()
     if port is None:
         return
-    ser = console.open_serial(port)
+    try:
+        ser = console.open_serial(port)
+    except BackendConnectionError as e:
+        print(_("Failed to open the serial port (close the serial monitor and retry): {error}"
+                ).format(error=e))
+        return
 
     raw = deque(maxlen=WINDOW)
-    shown = set()           # 已打印事件去重
+    shown = set()           # Deduplicate printed events
     last = 0
-    print(f"\n已连接 {port}，实时解码【{name}】中 ...（Ctrl+C 退出）\n")
+    print(_("\nConnected to {port}, decoding [{name}] live ... (Ctrl+C to exit)\n").format(
+        port=port, name=name))
     try:
         while True:
             n = ser.in_waiting
             if n:
-                raw.extend(ser.read(n))
+                raw.extend(ser.read_available())
             else:
                 time.sleep(0.01)
             if time.time() - last >= 0.5 and len(raw) >= 50:
                 last = time.time()
                 samples = list(raw)
-                events = core.DECKS[name]["decode"](samples, SAMPLE_RATE)
+                events = core.DECKS[name]["decode"](samples, rate)
                 for e in events:
                     key = (e["type"], e["text"], int(e["t"] * 10))
                     if key not in shown:
@@ -54,17 +68,17 @@ def live_mode(name):
         pass
     finally:
         ser.close()
-        print("\n已退出。")
+        print(_("\nExited."))
 
 
 def run():
     if not core.DECKS:
-        print("没有已登记的解码器，请确认 core 包中的解码器模块已加载。")
+        print(_("No registered decoders; check that the decoder modules in the core package are loaded."))
         return
-    print("===== 口袋数字调试助手 · 统一协议分析 =====")
-    print("  [1] 实时串口解码（需硬件）")
-    print("  [2] 离线演示（自带测试波形，无需硬件）")
-    mode = input("选择模式: ").strip()
+    print(_("===== HJS-Workbench - Unified protocol analysis ====="))
+    print(_("  [1] Live serial decode (needs hardware)"))
+    print(_("  [2] Offline demo (built-in test waveform, no hardware)"))
+    mode = input(_("Choose mode: ")).strip()
     name = console.choose_decoder()
     if name is None:
         return

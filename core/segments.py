@@ -4,7 +4,8 @@ from .model import set_channel
 
 
 def edges_of(bits):
-    """返回电平跳变沿列表：[(index, new_level), ...]（含初始电平）。"""
+    """Return the list of level transition edges [(index, new_level), ...]
+(including the initial level)."""
     out = []
     if not bits:
         return out
@@ -16,7 +17,8 @@ def edges_of(bits):
 
 
 def pulse_widths(bits, rate):
-    """把单通道序列切成连续电平段：[(start_index, level, 宽度_秒), ...]。"""
+    """Split a single-channel sequence into constant-level segments:
+[(start_index, level, width_seconds), ...]."""
     dt = 1.0 / rate
     segs = []
     start = 0
@@ -30,11 +32,12 @@ def pulse_widths(bits, rate):
 
 def build_wave(ch, pulses, rate, n, idle=1):
     """
-    生成 8 通道测试波形（其余通道为 0）。
-    pulses: [(起始秒, 电平, 时长秒), ...]，按时间顺序；空闲为 idle。
+    Generate an 8-channel test waveform (the other channels stay 0).
+    pulses: [(start_seconds, level, duration_seconds), ...] in time
+    order; idle is the idle level.
     """
     samples = [0] * n
-    # 先铺空闲电平
+    # Fill the idle level first
     for i in range(n):
         set_channel(samples, i, ch, idle)
     for (t0, lvl, dur) in pulses:

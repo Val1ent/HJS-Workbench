@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 """Single-channel measurement: frequency, period, pulse widths, duty, jitter."""
 
-SAMPLE_RATE = 10000
-DT          = 1.0 / SAMPLE_RATE
+from .hal import current_backend
 
 
-def measure(bits):
-    """对单通道 0/1 序列测量，返回指标 dict，信号不足返回 None"""
+def measure(bits, rate=None):
+    """Measure a single-channel 0/1 sequence; return a metrics dict, or None
+when the signal is insufficient.
+
+``rate`` is the sample rate in Hz; when omitted, the current device
+backend's sample rate is used.
+"""
+    if rate is None:
+        rate = current_backend().capabilities.sample_rate
+    dt = 1.0 / rate
     rising, falling = [], []
     for i in range(1, len(bits)):
         if bits[i-1] == 0 and bits[i] == 1: rising.append(i)
@@ -15,9 +22,9 @@ def measure(bits):
         return None
     periods = [rising[i+1] - rising[i] for i in range(len(rising)-1)]
     per_avg = sum(periods) / len(periods)
-    per_min = min(periods) * DT
-    per_max = max(periods) * DT
-    period_s = per_avg * DT
+    per_min = min(periods) * dt
+    per_max = max(periods) * dt
+    period_s = per_avg * dt
     freq = 1.0 / period_s
 
     highs = []
@@ -29,7 +36,7 @@ def measure(bits):
             highs.append(falling[fi] - r)
     if not highs:
         return None
-    high_s = (sum(highs) / len(highs)) * DT
+    high_s = (sum(highs) / len(highs)) * dt
     low_s  = period_s - high_s
     duty   = high_s / period_s * 100.0
     return {"freq": freq, "period": period_s, "high": high_s, "low": low_s,

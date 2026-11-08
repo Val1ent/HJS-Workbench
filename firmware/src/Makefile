@@ -1,5 +1,5 @@
 ################################################################################
-# PocketDebugKit - CH32H417 firmware standalone Makefile
+# HJS-Workbench - CH32H417 firmware standalone Makefile
 # Clone the repo, then build with the WCH RISC-V toolchain (riscv-wch-elf-gcc):
 #
 #   make            # build UART firmware (default)
@@ -43,7 +43,7 @@ LDSCRIPT = Ld/V3F/Link_v3f.ld
 LDFLAGS  = $(ARCH) -T $(LDSCRIPT) -nostartfiles -Xlinker --gc-sections \
            -Wl,-Map=$(BUILD)/firmware.map --specs=nano.specs --specs=nosys.specs
 
-TARGET = $(BUILD)/PocketDebugKit
+TARGET = $(BUILD)/HJS-Workbench
 
 all: $(TARGET).hex $(TARGET).bin
 	$(SIZE) --format=berkeley $(TARGET).elf

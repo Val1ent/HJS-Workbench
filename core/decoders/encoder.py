@@ -5,21 +5,24 @@ from ..model import channel_bits
 from ..registry import register
 
 # ======================================================================
-# 3. 正交编码器 A/B/Z（4 倍频计数，Z 相零点复位）
+# 3. Quadrature encoder A/B/Z (x4 counting, Z-phase zero reset)
 # ======================================================================
 def decode_encoder(samples, rate, a_ch=0, b_ch=1, z_ch=2, ppr=None):
     """
-    x4 计数：A/B 每个跳变沿计一次。A 超前 B 为正转。
-    z_ch 给出时，Z 相上升沿把位置清零并输出 ZERO 事件（无 Z 相时传 z_ch=None）；
-    ppr 给出每转脉冲数时，事件里附带转速 RPM（RPM=沿速/(4*ppr)*60）。
-    事件抽样输出（前 30 沿 + 此后每 30 沿），末尾给汇总。
+    x4 counting: every A/B edge counts once. A leading B = forward.
+    When z_ch is given, a Z rising edge resets the position to zero and
+    emits a ZERO event (pass z_ch=None when there is no Z phase);
+    when ppr gives the pulses per revolution, events also carry the
+    speed in RPM (RPM = edge_rate / (4 * ppr) * 60).
+    Events are sampled (first 30 edges + every 30th after that), with a
+    summary at the end.
     """
     a = channel_bits(samples, a_ch)
     b = channel_bits(samples, b_ch)
     z = channel_bits(samples, z_ch) if z_ch is not None else None
     n = len(samples)
     if n == 0:
-        return []            # 空数据直接返回，保证不崩溃
+        return []            # Return immediately on empty data to stay safe
     dt = 1.0 / rate
     FWD = {(0, 0): (1, 0), (1, 0): (1, 1), (1, 1): (0, 1), (0, 1): (0, 0)}
     REV = {(0, 0): (0, 1), (0, 1): (1, 1), (1, 1): (1, 0), (1, 0): (0, 0)}
@@ -32,7 +35,7 @@ def decode_encoder(samples, rate, a_ch=0, b_ch=1, z_ch=2, ppr=None):
     for i in range(1, n):
         if z is not None and z[i - 1] == 0 and z[i] == 1:
             pos = 0
-            events.append(event(i * dt, z_ch, "ZERO", "Z相零点 位置复位=0"))
+            events.append(event(i * dt, z_ch, "ZERO", "Z phase zero: position reset to 0"))
         cur = (a[i], b[i])
         if cur != prev:
             if FWD.get(prev) == cur:
@@ -40,7 +43,8 @@ def decode_encoder(samples, rate, a_ch=0, b_ch=1, z_ch=2, ppr=None):
             elif REV.get(prev) == cur:
                 delta = -1
             else:
-                delta = 0            # 双相同时跳变（毛刺），忽略
+                delta = 0            # Both phases changed at once (glitch),
+                                     # ignore
             if delta:
                 pos += delta
                 edges_cnt += 1
@@ -51,21 +55,22 @@ def decode_encoder(samples, rate, a_ch=0, b_ch=1, z_ch=2, ppr=None):
                 if edges_cnt <= 30 or edges_cnt % 30 == 0:
                     rpm = ""
                     if ppr and speeds:
-                        rpm = (f" 转速="
+                        rpm = (f" rpm="
                                f"{sum(speeds[-30:]) / len(speeds[-30:]) / (ppr * 4) * 60:.0f}RPM")
                     events.append(event(t_now, a_ch, "ENCODER",
-                        f"第{edges_cnt}沿 {'正' if delta > 0 else '反'} "
-                        f"位置={pos:+d}{rpm}"))
+                        f"edge #{edges_cnt} {'FWD' if delta > 0 else 'REV'} "
+                        f"pos={pos:+d}{rpm}"))
             prev = cur
     if edges_cnt:
         avg = sum(speeds) / len(speeds) if speeds else 0.0
         events.append(event((n - 1) * dt, a_ch, "ENCODER_SUM",
-                            f"共{edges_cnt}沿 位置={pos:+d} 平均={avg:.1f}沿/s"))
+                            f"total {edges_cnt} edges pos={pos:+d} avg={avg:.1f} edges/s"))
     events.sort(key=lambda e: e["t"])
     return events
 
 def make_encoder_test(rate):
-    """A 超前 B 正转 25 圈周期（100 沿）→ Z 脉冲清零 → 反转 5 周期（20 沿）。"""
+    """A leading B forward 25 cycles (100 edges) -> Z pulse resets to zero ->
+reverse 5 cycles (20 edges)."""
     n = int(0.06 * rate)
     a = [0] * n
     b = [0] * n
@@ -77,10 +82,10 @@ def make_encoder_test(rate):
         for i in range(aa, bb):
             arr[i] = val
 
-    dur = 0.00025                      # 每个相位 250us
+    dur = 0.00025                      # Each phase 250us
     t = 0.002
-    FWD = [(1, 0), (1, 1), (0, 1), (0, 0)]     # A 超前 B
-    REV = [(0, 1), (1, 1), (1, 0), (0, 0)]     # B 超前 A
+    FWD = [(1, 0), (1, 1), (0, 1), (0, 0)]     # A leads B
+    REV = [(0, 1), (1, 1), (1, 0), (0, 0)]     # B leads A
 
     def cycle(seq):
         nonlocal t
@@ -91,9 +96,9 @@ def make_encoder_test(rate):
 
     for _ in range(25):
         cycle(FWD)
-    put(z, t - dur, t, 1)              # Z 相脉冲（零点复位）
+    put(z, t - dur, t, 1)              # Z-phase pulse (zero reset)
     for _ in range(5):
         cycle(REV)
     return [(a[i]) | (b[i] << 1) | (z[i] << 2) for i in range(n)]
 
-register("encoder", decode_encoder, make_encoder_test, "正交编码器A/B/Z")
+register("encoder", decode_encoder, make_encoder_test, "Quadrature encoder A/B/Z")

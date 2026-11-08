@@ -5,21 +5,24 @@ from ..model import channel_bits
 from ..registry import register
 
 # ======================================================================
-# 4. 红外遥控 RC-5（飞利浦，14 位帧，双相编码）
+# 4. Infrared RC-5 remote (Philips, 14-bit frames, biphase encoding)
 # ======================================================================
 def decode_rc5(samples, rate, ch=0):
     """
-    RC-5：空闲低；每位 1778us，位中点必有跳变（双相编码）：
-      前半高+后半低 = 逻辑 1，前半低+后半高 = 逻辑 0。
-    帧 = 起始 1,1 + 翻转位 + 5 位地址 + 6 位命令（MSB 先发）。
-    逐候选起点做 14 位结构校验（每位的 1/4 与 3/4 处电平必须相反），
-    只接受前两位为 1 的帧，避免半位错位误报。
+    RC-5: idle low; each bit is 1778us and must flip in the middle
+    (biphase encoding): first half high + second half low = logic 1,
+    first half low + second half high = logic 0.
+    Frame = start 1,1 + toggle + 5-bit address + 6-bit command
+    (MSB first).
+    Try every candidate start and validate the 14-bit structure (the
+    1/4 and 3/4 levels of each bit must differ); accept only frames
+    whose first two bits are 1, to avoid half-bit false positives.
     """
     bits = channel_bits(samples, ch)
     n = len(bits)
     dt = 1.0 / rate
     events = []
-    full = 1778e-6                      # 每位 1.778ms
+    full = 1778e-6                      # 1.778 ms per bit
     rises = [i for i in range(1, n) if bits[i - 1] == 0 and bits[i] == 1]
     used = set()
     for s in rises:
@@ -34,10 +37,11 @@ def decode_rc5(samples, rate, ch=0):
                 ok = False
                 break
             l1, l3 = bits[q1], bits[q3]
-            if l1 == l3:                 # 位中点必须有跳变
+            if l1 == l3:                 # The bit midpoint must flip
                 ok = False
                 break
-            frame.append(l1)             # 前半高=1，前半低=0
+            frame.append(l1)             # First half high = 1, first half
+                                         # low = 0
         if ok and frame[0] == 1 and frame[1] == 1:
             toggle = frame[2]
             addr = 0
@@ -47,16 +51,18 @@ def decode_rc5(samples, rate, ch=0):
             for b in frame[8:14]:
                 cmd = (cmd << 1) | b
             events.append(event(s * dt, ch, "RC5",
-                                f"地址={addr} 命令={cmd} 翻转位={toggle}"))
+                                f"addr={addr} cmd={cmd} toggle={toggle}"))
             end_i = int(round(s + 14 * full * rate))
-            for r in rises:              # 帧内候选点不再重复检测
+            for r in rises:              # Candidate starts inside this frame
+                                         # are not re-tested
                 if s < r < end_i:
                     used.add(r)
     events.sort(key=lambda e: e["t"])
     return events
 
 def make_rc5_test(rate):
-    """一帧 RC-5：起始 1,1 + 翻转 0 + 地址 0b00101(5) + 命令 0b100001(33)。"""
+    """One RC-5 frame: start 1,1 + toggle 0 + address 0b00101 (5) +
+command 0b100001 (33)."""
     half = 889e-6
     frame = [1, 1, 0] + [0, 0, 1, 0, 1] + [1, 0, 0, 0, 0, 1]
     n = int((0.010 + 14 * 2 * half + 0.010) * rate)
@@ -70,9 +76,10 @@ def make_rc5_test(rate):
 
     t = 0.010
     for bit in frame:
-        put(t, t + half, bit)                    # 前半 = 位值
-        put(t + half, t + 2 * half, 1 - bit)     # 后半反相（位中点跳变）
+        put(t, t + half, bit)                    # First half = bit value
+        put(t + half, t + 2 * half, 1 - bit)     # Second half inverted
+                                                # (midpoint flip)
         t += 2 * half
     return bits[:]
 
-register("rc5", decode_rc5, make_rc5_test, "红外RC-5")
+register("rc5", decode_rc5, make_rc5_test, "IR RC-5")

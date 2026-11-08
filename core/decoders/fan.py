@@ -5,13 +5,16 @@ from ..model import channel_bits
 from ..registry import register
 
 # ======================================================================
-# 6. 4 线风扇转速（TACH 每圈 2 个脉冲，下降沿间隔 → RPM）
+# 6. 4-wire fan speed (TACH 2 pulses per revolution, falling-edge
+#    interval -> RPM)
 # ======================================================================
 def decode_fan(samples, rate, tach_ch=0, pulses_per_rev=2):
     """
-    TACH 每转输出 pulses_per_rev（默认 2）个脉冲；下降沿间隔 = 半圈时间。
-    RPM = 60 / (间隔秒 * 每转脉冲数)。每攒满 5 个间隔输出一次滑动平均，
-    末尾输出整体平均/最低/最高。
+    TACH outputs pulses_per_rev (default 2) pulses per revolution; the
+    falling-edge interval = half a revolution.
+    RPM = 60 / (interval_s * pulses per rev). A moving average is
+    reported every 5 intervals, and an overall average/min/max summary
+    at the end.
     """
     tach = channel_bits(samples, tach_ch)
     n = len(samples)
@@ -21,7 +24,7 @@ def decode_fan(samples, rate, tach_ch=0, pulses_per_rev=2):
     win = []
     for k in range(len(falls) - 1):
         per = (falls[k + 1] - falls[k]) * dt
-        if not (0.0001 <= per <= 1.0):      # 忽略异常间隔
+        if not (0.0001 <= per <= 1.0):      # Skip implausible intervals
             continue
         win.append(per)
         if len(win) > 5:
@@ -29,17 +32,18 @@ def decode_fan(samples, rate, tach_ch=0, pulses_per_rev=2):
         if len(win) == 5:
             rpms = [60.0 / (p * pulses_per_rev) for p in win]
             events.append(event(falls[k] * dt, tach_ch, "FAN",
-                                f"转速≈{sum(rpms) / len(rpms):.0f}RPM"))
+                                f"speed={sum(rpms) / len(rpms):.0f}RPM"))
     if win:
         rpms = [60.0 / (p * pulses_per_rev) for p in win]
         events.append(event((n - 1) * dt, tach_ch, "FAN_SUM",
-            f"平均={sum(rpms) / len(rpms):.0f}RPM "
-            f"最低={min(rpms):.0f} 最高={max(rpms):.0f}"))
+            f"avg={sum(rpms) / len(rpms):.0f}RPM "
+            f"min={min(rpms):.0f} max={max(rpms):.0f}"))
     events.sort(key=lambda e: e["t"])
     return events
 
 def make_fan_test(rate):
-    """3000RPM 风扇：2 脉冲/圈 → 100 脉冲/s → 脉冲周期 10ms，共 20 个脉冲。"""
+    """3000 RPM fan: 2 pulses/rev -> 100 pulses/s -> 10 ms pulse period,
+20 pulses total."""
     n = int(0.25 * rate)
     tach = [0] * n
 
@@ -50,10 +54,10 @@ def make_fan_test(rate):
             arr[i] = val
 
     t = 0.010
-    period = 0.010                      # 10ms = 3000RPM×2脉冲/圈
+    period = 0.010                      # 10 ms = 3000 RPM x 2 pulses/rev
     for _ in range(20):
-        put(tach, t, t + period / 2, 1)  # 50% 占空比
+        put(tach, t, t + period / 2, 1)  # 50% duty cycle
         t += period
     return tach[:]
 
-register("fan", decode_fan, make_fan_test, "风扇转速TACH")
+register("fan", decode_fan, make_fan_test, "Fan TACH speed")

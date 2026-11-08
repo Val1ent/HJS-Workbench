@@ -5,16 +5,16 @@ TICKS_PER_BIT = 10
 
 
 def uart_decode(bits):
-    """软件 UART 解码：返回解出的字符串"""
+    """Software UART decode: return the decoded string."""
     out = []
     n = len(bits)
     i = 1
     while i < n:
-        # 起始位：下降沿 1->0
+        # Start bit: falling edge 1->0
         if bits[i-1] == 1 and bits[i] == 0:
             start = i
             mid = start + TICKS_PER_BIT // 2
-            # 起始位中点应为 0
+            # The start-bit midpoint must be 0
             if mid < n and bits[mid] == 0:
                 byte = 0
                 ok = True
@@ -33,28 +33,34 @@ def uart_decode(bits):
     return ''.join(out)
 
 
-def scan_frames(bits):
-    """扫描所有成功解码的 UART 帧，返回 [(起始位置, 字符)]"""
+def scan_frames(bits, ticks=TICKS_PER_BIT):
+    """Scan all successfully decoded UART frames; return [(start index, char)].
+
+    ``ticks`` is the number of samples per bit (default 10 = the firmware
+    1000 bps frame); other slow baud rates pass their own value. The
+    default call keeps the exact original behavior.
+    """
     frames = []
     n = len(bits)
+    half = max(1, ticks // 2)
     i = 1
     while i < n:
         if bits[i - 1] == 1 and bits[i] == 0:
             start = i
-            mid = start + TICKS_PER_BIT // 2
+            mid = start + half
             if mid < n and bits[mid] == 0:
                 byte = 0
                 ok = True
                 for bit in range(8):
-                    pos = start + TICKS_PER_BIT // 2 + TICKS_PER_BIT * (bit + 1)
+                    pos = start + half + ticks * (bit + 1)
                     if pos >= n:
                         ok = False; break
                     if bits[pos] == 1:
                         byte |= (1 << bit)
-                stop = start + TICKS_PER_BIT // 2 + TICKS_PER_BIT * 9
+                stop = start + half + ticks * 9
                 if ok and stop < n and bits[stop] == 1:
                     frames.append((start, chr(byte)))
-                i = start + TICKS_PER_BIT * 9
+                i = start + ticks * 9
             else:
                 i += 1
         else:
@@ -63,7 +69,8 @@ def scan_frames(bits):
 
 
 def best_packet(bits):
-    """找出帧最多的连续报文，返回 (波形段, 字符串, 帧列表)"""
+    """Find the longest continuous run of frames; return
+(wave segment, string, frame list)."""
     frames = scan_frames(bits)
     if len(frames) < 2:
         return None

@@ -1,30 +1,34 @@
 # -*- coding: utf-8 -*-
 """Cross-platform terminal helpers shared by every CLI flow."""
 import os
-import time
-
-import serial
 
 import core
+from core.hal import BackendConnectionError, current_backend
+from core.i18n import _
 
 
 def clear_screen():
-    """清屏：Windows 用 cls，其他平台用 clear。"""
+    """Clear the screen: cls on Windows, clear elsewhere."""
     os.system("cls" if os.name == "nt" else "clear")
 
 
-def open_serial(port, baud=115200):
-    """打开串口并做好连接准备：置 DTR/RTS、等待 0.5s、清空输入缓冲，返回串口对象。"""
-    ser = serial.Serial(port, baud, timeout=0)
-    ser.dtr = True
-    ser.rts = True
-    time.sleep(0.5)
-    ser.reset_input_buffer()
-    return ser
+def open_serial(port, baud=None):
+    """Open the current backend's device connection on the given port.
+
+    The backend prepares the connection (asserting its control lines,
+    waiting, flushing the input buffer) and returns the DeviceConnection.
+    ``baud`` defaults to the backend's data baud; pass a backend-declared
+    rate (for example its signal baud) when a flow needs it.
+    """
+    backend = current_backend()
+    if baud is None:
+        return backend.connect(port)
+    return backend.connect(port, baud=baud)
 
 
 def read_int(prompt, default=None):
-    """读取一个整数：回车返回 default，非法输入返回 None，不抛 ValueError。"""
+    """Read an integer: Enter returns default, invalid input returns None
+(no ValueError)."""
     raw = input(prompt).strip()
     if not raw:
         return default
@@ -35,15 +39,16 @@ def read_int(prompt, default=None):
 
 
 def choose_port():
-    """列出串口并让用户选择；回车重扫，q 返回 None，其余非法输入重新提示。"""
+    """List serial ports and let the user pick one; Enter rescans, q returns
+None, other invalid input re-prompts."""
     while True:
         ports = core.list_serial_ports()
         if not ports:
-            print("没找到串口，检查 USB 连接")
-        print("===== 检测到的串口 =====")
+            print(_("No serial ports found, check the USB connection"))
+        print(_("===== Detected serial ports ====="))
         for i, p in enumerate(ports):
             print(f"  [{i}]  {p[0]}   {p[1]}")
-        sel = input("选择【底部 USB-FS 口】序号(回车重扫, q退出): ").strip()
+        sel = input(_("Choose the data port number (Enter rescans, q quits): ")).strip()
         if sel.lower() == "q":
             return None
         if sel == "":
@@ -51,25 +56,26 @@ def choose_port():
         try:
             return ports[int(sel)][0]
         except (ValueError, IndexError):
-            print("序号无效")
+            print(_("Invalid number"))
 
 
 def choose_decoder():
-    """列出 DECKS 中的解码器名称与说明，返回所选名称；q 返回 None。"""
+    """List decoder names and descriptions from DECKS and return the chosen
+name; q returns None."""
     while True:
         names = list(core.DECKS.keys())
-        print("===== 可选协议解码器 =====")
+        print(_("===== Available protocol decoders ====="))
         for i, n in enumerate(names):
             print(f"  [{i}]  {n:<10} {core.DECKS[n]['desc']}")
-        sel = input("选择解码器序号: ").strip()
+        sel = input(_("Choose decoder number: ")).strip()
         if sel.lower() == "q":
             return None
         try:
             return names[int(sel)]
         except (ValueError, IndexError):
-            print("序号无效")
+            print(_("Invalid number"))
 
 
 def pause():
-    """等待回车后再返回菜单。"""
-    input("\n回车返回菜单...")
+    """Wait for Enter before returning to the menu."""
+    input(_("\nPress Enter to return to the menu..."))

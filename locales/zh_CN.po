@@ -1,0 +1,794 @@
+# Simplified Chinese (zh_CN) translations for HJS-Workbench.
+# -*- coding: utf-8 -*-
+msgid ""
+msgstr ""
+"Project-Id-Version: HJS-Workbench 0.3.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "\n({n} sample points, {m} events)"
+msgstr "\n（{n} 个采样点，{m} 个事件）"
+
+msgid "\n-- Built-in UART decode --"
+msgstr "\n-- 内置 UART 解码 --"
+
+msgid "\n-- {ch} detailed measurement --"
+msgstr "\n-- {ch} 详细测量 --"
+
+msgid "\n-- {ch} live measurement --"
+msgstr "\n-- {ch} 实时测量 --"
+
+msgid "\n-- {ch} measurement --"
+msgstr "\n-- {ch} 测量 --"
+
+msgid "\n-- Data log --  {rows} rows written -> {path}"
+msgstr "\n-- 数据日志 --  已写入 {rows} 行 -> {path}"
+
+msgid "\n-- Edge-triggered totals --"
+msgstr "\n-- 边沿触发累计 --"
+
+msgid "\n-- Local comparison (points {lo}-{hi}, █=high _=low ^=diff) --"
+msgstr "\n-- 局部对比（点 {lo}-{hi}，█=高 _=低 ^=差异）--"
+
+msgid "\n-- UART decode ({ch}, 1000bps 8N1) --"
+msgstr "\n-- UART 解码（{ch}，1000bps 8N1）--"
+
+msgid "\n===== Offline demo: {name} (built-in test waveform, no hardware) ====="
+msgstr "\n===== 离线演示：{name}（内置测试波形，无需硬件）====="
+
+msgid "\nConnected to {port}, analyzing standalone ... (Ctrl+C to exit)\n"
+msgstr "\n已连接到 {port}，正在独立分析 ...（Ctrl+C 退出）\n"
+
+msgid "\nConnected to {port}, decoding [{name}] live ... (Ctrl+C to exit)\n"
+msgstr "\n已连接到 {port}，正在实时解码 [{name}] ...（Ctrl+C 退出）\n"
+
+msgid "\nConnected to {port}, measuring live ... (Ctrl+C to exit)\n"
+msgstr "\n已连接到 {port}，正在实时测量 ...（Ctrl+C 退出）\n"
+
+msgid "\nDiff interval list exported: {out}"
+msgstr "\n差异区间列表已导出：{out}"
+
+msgid "\nEnter to capture another screen, q to quit: "
+msgstr "\n回车再采集一屏，q 退出："
+
+msgid "\nExited"
+msgstr "\n已退出"
+
+msgid "\nExited, CSV saved: {path}"
+msgstr "\n已退出，CSV 已保存：{path}"
+
+msgid "\nExited."
+msgstr "\n已退出。"
+
+msgid "\nPress Enter to return to the menu..."
+msgstr "\n按回车返回主菜单..."
+
+msgid "\nReport exported: {out}"
+msgstr "\n报告已导出：{out}"
+
+msgid "    ... the other {n} are in the CSV"
+msgstr "    ... 其余 {n} 个已写入 CSV"
+
+msgid "    {ms:8.3f} ms  width {w:.0f}us  level={lvl}"
+msgstr "    {ms:8.3f} ms  宽度 {w:.0f}us  电平={lvl}"
+
+msgid "  Baud {baud:.0f} bps | Char period {period:.3f} ms | Packet length {nchar} chars | Frame format 8N1"
+msgstr "  波特率 {baud:.0f} bps | 字符周期 {period:.3f} ms | 包长 {nchar} 字符 | 帧格式 8N1"
+
+msgid "  Channel   Rising   Falling"
+msgstr "  通道   上升沿   下降沿"
+
+msgid "  Duty           : {duty:.1f} %   ({cycles} cycles averaged)"
+msgstr "  占空比         ：{duty:.1f} %   （{cycles} 个周期平均）"
+
+msgid "  {ch}: {freq:8.1f} Hz   Duty {duty:5.1f}%"
+msgstr "  {ch}：{freq:8.1f} Hz   占空比 {duty:5.1f}%"
+
+msgid "  Frequency      : {freq:.1f} Hz"
+msgstr "  频率            ：{freq:.1f} Hz"
+
+msgid "  Frequency {freq:.1f} Hz | Period {period:.3f} ms | Duty {duty:.1f}%"
+msgstr "  频率 {freq:.1f} Hz | 周期 {period:.3f} ms | 占空比 {duty:.1f}%"
+
+msgid "  Glitches: none (threshold {us:.0f}us)"
+msgstr "  毛刺：无（阈值 {us:.0f}us）"
+
+msgid "  High pulse     : {high:.3f} ms"
+msgstr "  高电平脉宽     ：{high:.3f} ms"
+
+msgid "  Low pulse      : {low:.3f} ms"
+msgstr "  低电平脉宽     ：{low:.3f} ms"
+
+msgid "  No complete packet detected in this window"
+msgstr "  此窗口内未检测到完整数据包"
+
+msgid "  Period         : {period:.3f} ms  (min {pmin:.3f} / max {pmax:.3f})"
+msgstr "  周期           ：{period:.3f} ms  （最小 {pmin:.3f} / 最大 {pmax:.3f}）"
+
+msgid "  Pulse width: min {mn:.0f}us | median {median:.0f}us | mean {mean:.0f}us | max {mx:.0f}us ({count} segments)"
+msgstr "  脉宽：最小 {mn:.0f}us | 中位 {median:.0f}us | 平均 {mean:.0f}us | 最大 {mx:.0f}us（{count} 段）"
+
+msgid "  Received: (no complete frame decoded in this window)"
+msgstr "  已接收：（此窗口内未解码出完整帧）"
+
+msgid "  Received: {text}"
+msgstr "  已接收：{text}"
+
+msgid "  Signal insufficient"
+msgstr "  信号不足"
+
+msgid "  Silent: no transitions in the whole segment (likely floating / constant level / not wired)"
+msgstr "  静默：整段无电平跳变（可能悬空 / 恒定电平 / 未接线）"
+
+msgid "  Width histogram:"
+msgstr "  脉宽直方图："
+
+msgid "  [!] Glitches (< {us:.0f}us): {n} found:"
+msgstr "  [!] 毛刺（< {us:.0f}us）：发现 {n} 个："
+
+msgid "  [0] Back to main menu"
+msgstr "  [0] 返回主菜单"
+
+msgid "  [1] Full offline self-test report (no hardware, zero flashing, for acceptance)"
+msgstr "  [1] 完整离线自检报告（无需硬件、零烧录、用于验收）"
+
+msgid "  [1] Live serial decode (needs hardware)"
+msgstr "  [1] 实时串口解码（需要硬件）"
+
+msgid "  [2] Offline demo (built-in test waveform, no hardware)"
+msgstr "  [2] 离线演示（内置测试波形，无需硬件）"
+
+msgid "  [2] PPM multi-channel extension check"
+msgstr "  [2] PPM 多通道扩展检查"
+
+msgid "  [3] Export all events to CSV"
+msgstr "  [3] 导出全部事件到 CSV"
+
+msgid "  [4] Pulse statistics and glitch detection"
+msgstr "  [4] 脉宽统计与毛刺检测"
+
+msgid "  [5] Dual-waveform diff"
+msgstr "  [5] 双波形对比"
+
+msgid "  [6] HTML waveform browser export"
+msgstr "  [6] HTML 波形浏览器导出"
+
+msgid "  [7] File analysis (UART decode + measurement)"
+msgstr "  [7] 文件分析（UART 解码 + 测量）"
+
+msgid "  high=█  low=_"
+msgstr "  高=█  低=_"
+
+msgid "  transitions {edges}"
+msgstr "  跳变 {edges} 次"
+
+msgid " (no serial port detected)"
+msgstr " （未检测到串口）"
+
+msgid " Port:"
+msgstr " 串口："
+
+msgid " Sample points:"
+msgstr " 采样点数："
+
+msgid "(Could not open automatically; double-click the file manually)"
+msgstr "（无法自动打开；请手动双击该文件）"
+
+msgid "(no events decoded)"
+msgstr "（未解码出事件）"
+
+msgid "(no periodic signal)"
+msgstr "（无周期信号）"
+
+msgid "- If in_waiting stays 0: the device is not sending on this port; check that you picked the USB-FS port, that A15->D0 is wired, and that the serial monitor is closed;"
+msgstr "- 若 in_waiting 一直为 0：设备未在该端口发送数据；请确认选择的是 USB-FS 端口、A15->D0 已连接、串口监视器已关闭；"
+
+msgid "- Try unplugging and replugging the bottom USB cable or pressing RESET, then pick the port again."
+msgstr "- 尝试重新插拔下方 USB 线或按 RESET，然后重新选择端口。"
+
+msgid "-- Multi-channel frequency --"
+msgstr "-- 多通道频率 --"
+
+msgid "-- Serial parameter measurement --"
+msgstr "-- 串口参数测量 --"
+
+msgid "-- Terminal waveform {ch} (first 100 points of the packet = 10 ms) --"
+msgstr "-- 终端波形 {ch}（数据包前 100 点 = 10 ms）--"
+
+msgid "-> square wave {hz} Hz"
+msgstr "-> 方波 {hz} Hz"
+
+msgid "-> switched to UART mode"
+msgstr "-> 已切换到 UART 模式"
+
+msgid "0. Quit"
+msgstr "0. 退出"
+
+msgid "1. Capture to file"
+msgstr "1. 采集到文件"
+
+msgid "2. Live analyzer"
+msgstr "2. 实时分析器"
+
+msgid "3. Live measurement"
+msgstr "3. 实时测量"
+
+msgid "4. Protocol decoder"
+msgstr "4. 协议解码器"
+
+msgid "5. Signal generator"
+msgstr "5. 信号发生器"
+
+msgid "6. Offline tools"
+msgstr "6. 离线工具"
+
+msgid "7. Language"
+msgstr "7. 语言"
+
+msgid "===== Available protocol decoders ====="
+msgstr "===== 可用协议解码器 ====="
+
+msgid "===== Detected serial ports ====="
+msgstr "===== 已检测到串口 ====="
+
+msgid "===== HJS-Workbench - Three-in-one live measurement ====="
+msgstr "===== HJS-Workbench - 三合一实时测量 ====="
+
+msgid "===== HJS-Workbench - Unified protocol analysis ====="
+msgstr "===== HJS-Workbench - 统一协议分析 ====="
+
+msgid "===== Offline tools ====="
+msgstr "===== 离线工具 ====="
+
+msgid "===== Standalone analyzer terminal (no PulseView needed) ====="
+msgstr "===== 独立分析终端（无需 PulseView）====="
+
+msgid "A release-notes prompt shows what changed after an update."
+msgstr "新增发布说明提示：更新后展示本次变更内容。"
+
+msgid "CSV output path (Enter defaults to proto_diff_report.csv): "
+msgstr "CSV 输出路径（回车默认 proto_diff_report.csv）："
+
+msgid "CSV output path (Enter defaults to proto_stats_report.csv): "
+msgstr "CSV 输出路径（回车默认 proto_stats_report.csv）："
+
+msgid "Cannot capture"
+msgstr "无法采集"
+
+msgid "Cannot read file {path}: the file has no sample-rate information."
+msgstr "无法读取文件 {path}：文件缺少采样率信息。"
+
+msgid "Cannot read file {path}: {error}"
+msgstr "无法读取文件 {path}：{error}"
+
+msgid "Capture"
+msgstr "采集"
+
+msgid "Captured {n} points ({rate} Hz)"
+msgstr "已采集 {n} 点（{rate} Hz）"
+
+msgid "Capture controls"
+msgstr "采集控制"
+
+msgid "Capture failed"
+msgstr "采集失败"
+
+msgid "Capture file path (.sr/.bin), Enter to use a decoder demo waveform: "
+msgstr "采集文件路径（.sr/.bin），回车使用解码器演示波形："
+
+msgid "Capture file path (.sr/.bin): "
+msgstr "采集文件路径（.sr/.bin）："
+
+msgid "Capture starts in 2 seconds; confirm A15 is connected to D0 ..."
+msgstr "2 秒后开始采集；请确认 A15 已连接到 D0 ..."
+
+msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the CH32 data port selected (bottom USB-FS port, not the debug port), is A15 looped back to D0, is the port free of other programs; then retry."
+msgstr "采集超时：收到 {got} 点，需要 {need} 点。\n请检查：是否选择了 CH32 数据端口（下方 USB-FS 端口，不是调试端口）、A15 是否环接到 D0、端口是否被其他程序占用；然后重试。"
+
+msgid "Capturing {n} points from {port} ..."
+msgstr "正在从 {port} 采集 {n} 点 ..."
+
+msgid "Channel"
+msgstr "通道"
+
+msgid "Channel list (comma-separated, Enter defaults to all): "
+msgstr "通道列表（逗号分隔，回车默认全部）："
+
+msgid "Choose decoder number: "
+msgstr "选择解码器编号："
+
+msgid "Choose mode: "
+msgstr "选择模式："
+
+msgid "Choose the data port number (Enter rescans, q quits): "
+msgstr "选择数据端口编号（回车重新扫描，q 退出）："
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Connected to {port}"
+msgstr "已连接到 {port}"
+
+msgid "Content"
+msgstr "内容"
+
+msgid "Created:"
+msgstr "已创建："
+
+msgid "Created: {out}  ({bytes} bytes)"
+msgstr "已创建：{out}（{bytes} 字节）"
+
+msgid "{ch} details"
+msgstr "{ch} 详情"
+
+msgid "Decode"
+msgstr "解码"
+
+msgid "Decode failed"
+msgstr "解码失败"
+
+msgid "Decode failed (ignored):"
+msgstr "解码失败（已忽略）："
+
+msgid "Decoded {n} events"
+msgstr "已解码 {n} 个事件"
+
+msgid "Decoder:"
+msgstr "解码器："
+
+msgid "Different lengths: comparing only the overlapping {n} points"
+msgstr "长度不同：仅比较重叠的 {n} 点"
+
+msgid "Dual-waveform diff report (A=reference, B=device under test)"
+msgstr "双波形对比报告（A=参考，B=被测设备）"
+
+msgid "Duty"
+msgstr "占空比"
+
+msgid "Enter a frequency (1-5000) for a square wave; u = switch to UART; q = quit\n"
+msgstr "输入频率（1-5000）输出方波；u = 切换到 UART；q = 退出\n"
+
+msgid "Enter a numeric frequency, or u / q"
+msgstr "请输入数字频率，或按 u / q"
+
+msgid "Exited"
+msgstr "已退出"
+
+msgid "Exited."
+msgstr "已退出。"
+
+msgid "Exported: {path}"
+msgstr "已导出：{path}"
+
+msgid "Failed to open the serial port (close the serial monitor and retry): {error}"
+msgstr "打开串口失败（请关闭串口监视器后重试）：{error}"
+
+msgid "First-run language picker in the GUI and the CLI."
+msgstr "GUI 与 CLI 首次运行时显示语言选择器。"
+
+msgid "Frequency"
+msgstr "频率"
+
+msgid "Full protocol self-test report (fully offline - zero flashing - repeatable acceptance)"
+msgstr "完整协议自检报告（完全离线 - 零烧录 - 可重复验收）"
+
+msgid "Glitch threshold us (Enter defaults to 200): "
+msgstr "毛刺阈值 us（回车默认 200）："
+
+msgid "Internationalization: English, Simplified Chinese, Traditional Chinese."
+msgstr "国际化：英语、简体中文、繁体中文。"
+
+msgid "Invalid channel list, using all channels"
+msgstr "通道列表无效，使用全部通道"
+
+msgid "Invalid choice"
+msgstr "无效选择"
+
+msgid "Invalid number"
+msgstr "无效编号"
+
+msgid "Language changed."
+msgstr "语言已更改。"
+
+msgid "Measure"
+msgstr "测量"
+
+msgid "Most common bytes:"
+msgstr "最常见字节："
+
+msgid "Nine protocol decoders, measurement, and .sr/.bin file support."
+msgstr "九种协议解码器、测量功能与 .sr/.bin 文件支持。"
+
+msgid "No events decoded"
+msgstr "未解码出事件"
+
+msgid "No registered decoders; check that the decoder modules in the core package are loaded."
+msgstr "没有已注册的解码器；请检查 core 包中的解码器模块是否已加载。"
+
+msgid "No serial ports found, check the USB connection"
+msgstr "未找到串口，请检查 USB 连接"
+
+msgid "No usable serial port detected. Connect the device data port, then click Refresh ports."
+msgstr "未检测到可用串口。请连接设备数据端口，然后点击刷新端口。"
+
+msgid "Not enough data."
+msgstr "数据不足。"
+
+msgid "Note: the in-frame channel gaps are recognized as PPM and not misreported as SERVO (gaps != 20 ms)."
+msgstr "说明：讯框内的通道间隔被识别为 PPM，不会误报为 SERVO（间隔 != 20 ms）。"
+
+msgid "Open capture file"
+msgstr "打开采集文件"
+
+msgid "Open file"
+msgstr "打开文件"
+
+msgid "Open the browser automatically after generation? (Enter=yes, n=no): "
+msgstr "生成后自动打开浏览器？（回车=是，n=否）："
+
+msgid "Opened: {path}"
+msgstr "已打开：{path}"
+
+msgid "Output file (Enter defaults to proto_wave.html): "
+msgstr "输出文件（回车默认 proto_wave.html）："
+
+msgid "Overlay decoder name (Enter to skip): "
+msgstr "叠加解码器名称（回车跳过）："
+
+msgid "Press Enter to continue"
+msgstr "按回车继续"
+
+msgid "Pulse statistics and glitch detection  |  {src}"
+msgstr "脉宽统计与毛刺检测  |  {src}"
+
+msgid "Read failed:"
+msgstr "读取失败："
+
+msgid "Reading file..."
+msgstr "正在读取文件..."
+
+msgid "Ready"
+msgstr "就绪"
+
+msgid "Received {n} bytes in {t:.1f} s"
+msgstr "在 {t:.1f} 秒内收到 {n} 字节"
+
+msgid "Reference waveform A path (.sr/.bin): "
+msgstr "参考波形 A 路径（.sr/.bin）："
+
+msgid "Refresh ports"
+msgstr "刷新端口"
+
+msgid "Run decode"
+msgstr "运行解码"
+
+msgid "Runtime language switching without restarting."
+msgstr "运行时可切换语言，无需重启。"
+
+msgid "Sample rate (.bin only, Enter for auto): "
+msgstr "采样率（仅 .bin，回车自动）："
+
+msgid "Sample rate in Hz (Enter defaults to {rate}): "
+msgstr "采样率 Hz（回车默认 {rate}）："
+
+msgid "Sample rate {rate} Hz - {n} points ({ms:.1f} ms) - glitch threshold {us:.0f}us"
+msgstr "采样率 {rate} Hz - {n} 点（{ms:.1f} ms）- 毛刺阈值 {us:.0f}us"
+
+msgid "Sample rate {rate} Hz - {n} points - duration {ms:.1f} ms"
+msgstr "采样率 {rate} Hz - {n} 点 - 时长 {ms:.1f} ms"
+
+msgid "Sample rate: {rate} Hz   Window: {n} points\n"
+msgstr "采样率：{rate} Hz   窗口：{n} 点\n"
+
+msgid "Select: "
+msgstr "选择："
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Time(ms)"
+msgstr "时间(ms)"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "UART text ({ch}, 8N1)"
+msgstr "UART 文本（{ch}，8N1）"
+
+msgid "Unified CLI and GUI packages built on the shared core."
+msgstr "基于共享核心构建统一的 CLI 与 GUI 软件包。"
+
+msgid "Unknown decoder:"
+msgstr "未知解码器："
+
+msgid "Unsupported file type: {ext}. Please choose a .sr or .bin file."
+msgstr "不支持的文件类型：{ext}。请选择 .sr 或 .bin 文件。"
+
+msgid "Version {version}"
+msgstr "版本 {version}"
+
+msgid "Waveform B under test path (.sr/.bin): "
+msgstr "被测波形 B 路径（.sr/.bin）："
+
+msgid "Waiting for the background capture to finish..."
+msgstr "正在等待后台采集结束..."
+
+msgid "What's new"
+msgstr "更新内容"
+
+msgid "available:"
+msgstr "可用："
+
+msgid "duty~{duty:.1f}%"
+msgstr "占空比~{duty:.1f}%"
+
+msgid "freq~{freq:.1f} Hz"
+msgstr "频率~{freq:.1f} Hz"
+
+msgid "insufficient signal"
+msgstr "信号不足"
+
+msgid "{type} (no details)"
+msgstr "{type}（无详细信息）"
+msgid "8. Device"
+msgstr "8. 设备"
+
+msgid "===== Device configuration ====="
+msgstr "===== 设备配置 ====="
+
+msgid "Current device: {name}"
+msgstr "当前设备：{name}"
+
+msgid "  Channels: {count} ({names})"
+msgstr "  通道数：{count}（{names}）"
+
+msgid "  Byte mode: {unit} byte(s) per sample"
+msgstr "  字节模式：每采样点 {unit} 字节"
+
+msgid "  Sample rate: {rate} Hz"
+msgstr "  采样率：{rate} Hz"
+
+msgid "===== Available devices ====="
+msgstr "===== 可用设备 ====="
+
+msgid "Choose device number (Enter keeps the current device, q quits): "
+msgstr "选择设备编号（回车保持当前设备，q 退出）："
+
+msgid "Device selected: {name}"
+msgstr "已选择设备：{name}"
+
+msgid " Device:"
+msgstr " 设备："
+
+msgid "{name} - {count} channels, {unit} byte(s)/sample, {rate} Hz"
+msgstr "{name} - {count} 通道，每采样点 {unit} 字节，{rate} Hz"
+
+msgid "Cannot open serial port {port}: {error}"
+msgstr "无法打开串口 {port}：{error}"
+
+msgid "Cannot set the DTR control line: {error}"
+msgstr "无法设置 DTR 控制线：{error}"
+
+msgid "Cannot set the RTS control line: {error}"
+msgstr "无法设置 RTS 控制线：{error}"
+
+msgid "Unsupported sample rate {rate} Hz for the {name} backend; supported rates: {rates} Hz"
+msgstr "设备 {name} 不支持采样率 {rate} Hz；支持的采样率：{rates} Hz"
+
+msgid "Unsupported byte mode {unit} byte(s) per sample for the {name} backend; supported byte modes: {units}"
+msgstr "设备 {name} 不支持每采样点 {unit} 字节的字节模式；支持的字节模式：{units}"
+
+msgid "Unsupported channel count {count} for the {name} backend; supported channel count: {supported}"
+msgstr "设备 {name} 不支持 {count} 个通道；支持的通道数：{supported}"
+
+msgid "Unknown device backend: {id}. Available backends: {ids}"
+msgstr "未知设备后端：{id}。可用后端：{ids}"
+
+msgid "Channel names do not match the channel count ({names} names, {count} channels)."
+msgstr "通道名称与通道数不一致（{names} 个名称，{count} 个通道）。"
+
+msgid "Unsupported channel names for the {name} backend: {names}"
+msgstr "设备 {name} 不支持通道名称：{names}"
+
+msgid "Cannot change device"
+msgstr "无法更换设备"
+
+msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
+msgstr "硬件抽象层：所有真实开发板都通过统一的设备后端接口工作。"
+
+msgid "The CH32 board is the first backend; baud rates, channel count, byte mode, sample rate, and troubleshooting text all come from its declared capabilities."
+msgstr "CH32 开发板是第一个后端；波特率、通道数、字节模式、采样率和排查提示都来自其声明的能力。"
+
+msgid "New device configuration entry in the CLI and the GUI."
+msgstr "CLI 和 GUI 新增设备配置入口。"
+
+
+msgid "9. Quick start guide"
+msgstr "9. 快速入门指南"
+
+msgid "Back"
+msgstr "上一步"
+
+msgid "Burst"
+msgstr "突发脉冲"
+
+msgid "Cannot connect"
+msgstr "无法连接"
+
+msgid "Connect"
+msgstr "连接"
+
+msgid "Connect the signal port before sending a command."
+msgstr "发送命令前请先连接信号端口。"
+
+msgid "Disconnect"
+msgstr "断开连接"
+
+msgid "Duty cycle"
+msgstr "占空比"
+
+msgid "Duty cycle must be between {min} and {max} percent."
+msgstr "占空比必须在 {min} 到 {max} 百分比之间。"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid "Force high"
+msgstr "强制高电平"
+
+msgid "Force low"
+msgstr "强制低电平"
+
+msgid "Frequency must be between {min} and {max} Hz."
+msgstr "频率必须在 {min} 到 {max} Hz 之间。"
+
+msgid "Invalid duty cycle"
+msgstr "无效的占空比"
+
+msgid "Invalid frequency"
+msgstr "无效的频率"
+
+msgid "Invalid pulse count"
+msgstr "无效的脉冲数"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Next"
+msgstr "下一步"
+
+msgid "No usable serial port detected. Connect the device, then click Refresh ports."
+msgstr "未检测到可用的串口。请连接设备，然后点击刷新端口。"
+
+msgid "Not connected"
+msgstr "未连接"
+
+msgid "PWM"
+msgstr "PWM"
+
+msgid "Pulse count"
+msgstr "脉冲数"
+
+msgid "Pulse count must be between {min} and {max}."
+msgstr "脉冲数必须在 {min} 到 {max} 之间。"
+
+msgid "Quick Start Guide"
+msgstr "快速入门指南"
+
+msgid "Quick start"
+msgstr "快速入门"
+
+msgid "Send"
+msgstr "发送"
+
+msgid "Send failed"
+msgstr "发送失败"
+
+msgid "Signal"
+msgstr "信号"
+
+msgid "Skip"
+msgstr "跳过"
+
+msgid "Software UART"
+msgstr "软件 UART"
+
+msgid "Square wave"
+msgstr "方波"
+
+msgid "Start continuous"
+msgstr "开始连续采集"
+
+msgid "Step {number} of {total}: {title}"
+msgstr "第 {number} 步，共 {total} 步：{title}"
+
+msgid "Step {number}: {title}"
+msgstr "第 {number} 步：{title}"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Welcome to HJS-Workbench"
+msgstr "欢迎使用 HJS-Workbench"
+
+msgid "Connect the device"
+msgstr "连接设备"
+
+msgid "Select the port"
+msgstr "选择端口"
+
+msgid "Waveform, decode, and measurement"
+msgstr "波形、解码与测量"
+
+msgid "Signal generator"
+msgstr "信号发生器"
+
+msgid "Plug the board into a USB port and check the two USB connectors on the board."
+msgstr "将开发板插入 USB 接口，并查看板上的两个 USB 连接器。"
+
+msgid "The data port (USB-FS) carries the capture stream; the debug port belongs to the WCH-Link debugger and is only for flashing and debugging."
+msgstr "数据端口（USB-FS）承载采集数据流；调试端口属于 WCH-Link 调试器，仅用于烧录和调试。"
+
+msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
+msgstr "采集、测量与解码只能通过数据端口工作；只插调试端口的线缆是不够的。"
+
+msgid "In the GUI use the port list and refresh it; in the CLI choose the capture entry or the signal generator and pick the port number from the detected list."
+msgstr "在 GUI 中使用端口列表并刷新；在 CLI 中选择采集功能或信号发生器，并从检测到的列表中选择端口号。"
+
+msgid "The data port appears as a new serial port when the cable is connected; if no port appears, check the cable and the USB driver."
+msgstr "连接线缆后，数据端口会显示为一个新的串口；如果没有出现端口，请检查线缆和 USB 驱动。"
+
+msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
+msgstr "连接前请确认没有其他程序（串口监视器、另一个采集进程）占用该端口。"
+
+msgid "One-shot capture: choose the sample point count and start the capture; the waveform appears when the transfer completes."
+msgstr "单次采集：选择采样点数并开始采集；传输完成后波形即显示出来。"
+
+msgid "Continuous capture: use the continuous start/stop controls to stream a rolling window that refreshes the waveform every 100-200 ms; stopping releases the port."
+msgstr "连续采集：使用连续采集的开始/停止控件流式刷新滚动窗口，每 100-200 ms 更新一次波形；停止后释放端口。"
+
+msgid "One-shot and continuous capture share the data port and cannot run at the same time."
+msgstr "单次采集与连续采集共用数据端口，不能同时运行。"
+
+msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz for the CH32 board)."
+msgstr "波形以设备端采样率（CH32 开发板为 10 kHz）显示 D0-D7 通道。"
+
+msgid "The decode tab lists the registered protocol decoders; pick one and run it on the captured data."
+msgstr "解码选项卡列出了已注册的协议解码器；选择一个并对采集到的数据进行解码。"
+
+msgid "The measurement tab reports frequency, period, pulse widths, duty, and edge counts per channel."
+msgstr "测量选项卡报告每个通道的频率、周期、脉宽、占空比与边沿计数。"
+
+msgid "The signal-generator tab drives the real firmware output on PA15 over the signal connection: software UART, square wave, PWM (frequency and duty), burst (frequency and pulse count), and forced high/low."
+msgstr "信号发生器选项卡通过信号连接驱动 PA15 上的真实固件输出：软件 UART、方波、PWM（频率与占空比）、突发脉冲（频率与脉冲数）以及强制高/低电平。"
+
+msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
+msgstr "用跳线把 A15 环回接到 D0，即可采集并解码生成的信号。"
+
+msgid "Frequency is limited to 1-5000 Hz and duty to 1-99 percent; keep the inputs inside these limits."
+msgstr "频率限制在 1-5000 Hz，占空比限制在 1-99%；请将输入保持在此范围内。"
+
+msgid "Ten new protocol decoders: DHT11, 1-Wire, SWD, Modbus RTU, Wiegand, HD44780, Sony SIRC, DS1302, Manchester, and NMEA 0183."
+msgstr "新增十种协议解码器：DHT11、1-Wire、SWD、Modbus RTU、Wiegand、HD44780、Sony SIRC、DS1302、Manchester 与 NMEA 0183。"
+
+msgid "Continuous capture mode in the GUI with a rolling waveform, alongside the existing one-shot capture."
+msgstr "GUI 新增连续采集模式与滚动波形，与现有单次采集并存。"
+
+msgid "Extended firmware signal generator: PWM, burst, and forced high/low commands, driven from the new GUI signal panel."
+msgstr "扩展固件信号发生器：PWM、突发脉冲与强制高/低电平命令，由新的 GUI 信号面板驱动。"
+
+msgid "First-run onboarding wizard and a re-openable Quick Start Guide in the GUI and the CLI."
+msgstr "首次运行引导向导，以及可在 GUI 和 CLI 中重新打开的快速入门指南。"
+
+msgid "Streaming from {port}..."
+msgstr "正在从 {port} 连续采集..."
+
+msgid "Stopping continuous capture..."
+msgstr "正在停止连续采集..."
+
+msgid "Streaming {n} points"
+msgstr "连续采集中：{n} 点"
+
+msgid "Sent: {line}"
+msgstr "已发送：{line}"

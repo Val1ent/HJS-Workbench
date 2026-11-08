@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-离线工具子菜单：自检报告、PPM 验证、CSV 导出、脉冲统计、双波形对比、
-HTML 波形导出与文件分析（对应 proto_lab / proto_stats / proto_diff /
-proto_browser 的离线能力）。
+Offline tools submenu: self-test report, PPM verification, CSV export,
+pulse statistics, dual-waveform diff, HTML waveform export, and file
+analysis (the offline capabilities of proto_lab / proto_stats /
+proto_diff / proto_browser).
 """
 import csv
 import json
@@ -11,122 +12,169 @@ import statistics
 
 import core
 from core.decoders.servo import decode_servo
+from core.i18n import _
 from core.model import channel_bits
 from core.segments import build_wave, pulse_widths
 from . import console
 
-SAMPLE_RATE = 10000
 
-# ---- 验收规则：自测事件里必须出现的（类型, 关键内容） ----
+def _default_rate():
+    """Sample rate of the current device backend, in Hz."""
+    return core.current_backend().capabilities.sample_rate
+
+
+def _channel_count():
+    """Channel count of the current device backend."""
+    return core.current_backend().capabilities.channel_count
+
+
+def _channel_names():
+    """Channel names of the current device backend."""
+    return list(core.current_backend().capabilities.channel_names)
+
+# ---- Acceptance rules: (type, key content) pairs that must appear in the
+# ---- self-test events ----
 REQUIRED = {
-    "nec":        [("LEADER", None), ("NEC", "地址=0x00 命令=0x45"), ("REPEAT", None)],
-    "servo":      [("SERVO", "角度=0.0°"), ("SERVO", "角度=90.0°"),
-                   ("SERVO", "角度=180.0°")],
+    "nec":        [("LEADER", None), ("NEC", "addr=0x00 cmd=0x45"), ("REPEAT", None)],
+    "servo":      [("SERVO", "angle=0.0 deg"), ("SERVO", "angle=90.0 deg"),
+                   ("SERVO", "angle=180.0 deg")],
     "i2c":        [("START", None), ("ADDR", "0x48 W ACK"),
                    ("DATA", "0x55 ACK"), ("STOP", None)],
     "spi":        [("CS_LOW", None), ("SPI", "MOSI=0x3C MISO=0x11"),
                    ("SPI", "MOSI=0xA5 MISO=0x22"), ("CS_HIGH", None)],
-    "stepper":    [("STEP", "第1步"), ("STEP_SUM", "共40步"), ("STEP_SUM", "累计=+20")],
+    "stepper":    [("STEP", "step #1"), ("STEP_SUM", "total 40 steps"), ("STEP_SUM", "pos=+20")],
     "encoder":    [("ENCODER", None), ("ZERO", None)],
-    "rc5":        [("RC5", "地址=5 命令=33")],
-    "ultrasonic": [("TRIG", None), ("DISTANCE", "距离≈17.0cm"),
-                   ("DISTANCE", "距离≈25.5cm")],
-    "fan":        [("FAN", None), ("FAN_SUM", "平均=3000RPM")],
+    "rc5":        [("RC5", "addr=5 cmd=33")],
+    "ultrasonic": [("TRIG", None), ("DISTANCE", "distance=17.0cm"),
+                   ("DISTANCE", "distance=25.5cm")],
+    "fan":        [("FAN", None), ("FAN_SUM", "avg=3000RPM")],
+    "dht11":      [("DHT11_START", None), ("DHT11_RESPONSE", None),
+                   ("DHT11", "humidity=45.0% temperature=25.0C")],
+    "onewire":    [("RESET", None), ("PRESENCE", None), ("ROM", "0xCC"),
+                   ("CMD", "0xBE"), ("SCRATCHPAD", "90 01 4B 46 7F FF FF FF 57"),
+                   ("TEMP", "temp=25.0C CRC OK")],
+    "swd":        [("SWD_RESET", "line reset"), ("SWD_WRITE", "data=0x12345678"),
+                   ("SWD_READ", "data=0x87654321")],
+    "modbus":     [("MODBUS", "addr=1 read holding registers start=0 qty=2 CRC OK")],
+    "wiegand":    [("WIEGAND_BIT", "bit=0"),
+                   ("WIEGAND_FRAME", "facility=101 card=12345 parity OK")],
+    "hd44780":    [("CMD", "0x28"), ("CMD", "0x0C"), ("CHAR", "'H'"),
+                   ("CHAR", "'i'")],
+    "sirc":       [("SIRC", "dev=1 cmd=22 (12 bits)")],
+    "ds1302":     [("DS1302_WRITE", "seconds"), ("DS1302_READ", "hours"),
+                   ("TIME", "time=13:30:45")],
+    "manchester": [("MAN_BYTE", "0x48 'H'"), ("MAN_BYTE", "0x69 'i'")],
+    "nmea":       [("NMEA", "$GPGGA"), ("NMEA", "checksum OK")],
 }
 FORBIDDEN = {
-    "nec": [("NEC_ERR", None)],        # NEC 校验错误一条都不能有
+    "nec": [("NEC_ERR", None)],        # Not a single NEC checksum error is allowed
+    "dht11": [("DHT11_ERR", None)],
+    "onewire": [("TEMP_ERR", None)],
+    "modbus": [("MODBUS_CRC_ERR", None)],
+    "wiegand": [("WIEGAND_PARITY_ERR", None)],
+    "nmea": [("NMEA_ERR", None)],
 }
 
 
 def check_deck(name, events):
-    """按 REQUIRED/FORBIDDEN 核对事件，返回 (ok, 问题列表)。"""
+    """Check events against REQUIRED/FORBIDDEN; return (ok, problem list)."""
     problems = []
     for typ, sub in REQUIRED.get(name, []):
         hits = [e for e in events if e["type"] == typ
                 and (sub is None or sub in e["text"])]
         if not hits:
-            problems.append(f"缺 {typ} {sub or ''}".strip())
+            problems.append(f"missing {typ} {sub or ''}".strip())
     for typ, sub in FORBIDDEN.get(name, []):
         hits = [e for e in events if e["type"] == typ
                 and (sub is None or sub in e["text"])]
         if hits:
-            problems.append(f"出现禁止项 {typ} x{len(hits)}")
+            problems.append(f"forbidden item present {typ} x{len(hits)}")
     return (len(problems) == 0), problems
 
 
 def report_all():
-    """跑全部 9 个解码器自测并核对预期，打印验收报告。返回是否全部通过。"""
+    """Run the self-test of every registered decoder, check expectations,
+    and print the acceptance report. Returns whether all passed.
+
+The banner wording is translated; the report body (decoder names, event
+text, PASS/FAIL rows and the acceptance summary) is data output and stays
+English in every language.
+"""
     print("=" * 64)
-    print("全量协议自检报告（纯离线 · 零烧录 · 可重复验收）")
+    print(_("Full protocol self-test report (fully offline - zero flashing - repeatable acceptance)"))
     print("=" * 64)
     passed = 0
     total = 0
+    rate = _default_rate()
     for name, deck in core.DECKS.items():
         total += 1
         try:
-            samples = deck["make"](SAMPLE_RATE)
-            events = deck["decode"](samples, SAMPLE_RATE)
+            samples = deck["make"](rate)
+            events = deck["decode"](samples, rate)
             ok, problems = check_deck(name, events)
         except Exception as exc:
-            ok, problems, events = False, [f"异常: {exc}"], []
+            ok, problems, events = False, [f"error: {exc}"], []
         if ok:
             passed += 1
         print(f"\n[{'PASS' if ok else 'FAIL'}] {name:<10} {deck['desc']}"
-              f"  事件 {len(events)} 条")
+              f"  events {len(events)}")
         for p in problems:
-            print("        问题: " + p)
+            print("        problem: " + p)
         for e in events[:5]:
             print(f"        {e['t']*1000:8.3f}ms  {e['type']:<10} {e['text']}")
         if len(events) > 5:
-            print(f"        ... 其余 {len(events)-5} 条略")
+            print(f"        ... {len(events)-5} more omitted")
     print("\n" + "=" * 64)
-    print(f"验收结果: {passed}/{total} 通过" + ("  [OK]" if passed == total else "  [FAIL]"))
+    print(f"Acceptance: {passed}/{total} passed" + ("  [OK]" if passed == total else "  [FAIL]"))
     return passed == total
 
 
 def make_ppm_test(rate):
-    """PPM 演示：8 通道，间隔依次 1000~1800us，帧同步 >4000us。"""
+    """PPM demo: all channel gaps 1000-1800us in order, frame sync > 4000us."""
     n = int(0.06 * rate)
     pulses = []
     t = 0.003
     for us in (1000, 1200, 1400, 1600, 1800, 1500, 1300, 1100):
-        pulses.append((t, 1, 0.0004))       # 400us 通道脉冲
+        pulses.append((t, 1, 0.0004))       # 400us channel pulse
         t += us / 1e6
-    pulses.append((t, 1, 0.0004))           # 帧尾短脉冲，凑出第 8 个通道值
+    pulses.append((t, 1, 0.0004))           # Short end-of-frame pulse completes the 8th channel value
     return build_wave(0, pulses, rate, n, idle=0)
 
 
 def check_ppm():
-    """验证 decode_servo 的 PPM 分支：8 通道帧且不误报 SERVO。"""
-    samples = make_ppm_test(SAMPLE_RATE)
-    events = decode_servo(samples, SAMPLE_RATE, ch=0)
+    """Verify the PPM branch of decode_servo: an all-channel frame and no
+false SERVO events."""
+    rate = _default_rate()
+    samples = make_ppm_test(rate)
+    events = decode_servo(samples, rate, ch=0)
     ppm = [e for e in events if e["type"] == "PPM"]
     servos = [e for e in events if e["type"] == "SERVO"]
-    ok = len(ppm) == 1 and "8通道" in ppm[0]["text"] and not servos
+    ok = len(ppm) == 1 and "8 ch" in ppm[0]["text"] and not servos
     print("=" * 64)
-    print(f"[{'PASS' if ok else 'FAIL'}] PPM 多通道扩展验证")
+    print(f"[{'PASS' if ok else 'FAIL'}] PPM multi-channel extension check")
     for e in events:
         print(f"  {e['t']*1000:9.3f} ms  D{e['ch']}  {e['type']:<10} {e['text']}")
-    print("说明: 帧内 8 个通道间隔被识别为 PPM，且未误报成 SERVO（间隔≠20ms）。")
+    print(_("Note: the in-frame channel gaps are recognized as PPM and not misreported as SERVO (gaps != 20 ms)."))
     return ok
 
 
 def export_csv():
-    """把全部解码器自测事件导出为 CSV（utf-8-sig，Excel 可直接打开）。"""
+    """Export all decoder self-test events to CSV (utf-8-sig, opens directly in Excel)."""
     path = os.path.join(os.getcwd(), "proto_lab_events.csv")
+    rate = _default_rate()
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["解码器", "类型", "时间ms", "通道", "内容"])
+        w.writerow(["Decoder", "Type", "Time ms", "Channel", "Content"])
         for name in core.DECKS:
-            samples = core.DECKS[name]["make"](SAMPLE_RATE)
-            for e in core.DECKS[name]["decode"](samples, SAMPLE_RATE):
+            samples = core.DECKS[name]["make"](rate)
+            for e in core.DECKS[name]["decode"](samples, rate):
                 w.writerow([name, e["type"], f"{e['t']*1000:.3f}",
                             f"D{e['ch']}", e["text"]])
-    print("已导出:", path)
+    print(_("Exported: {path}").format(path=path))
 
 
 # ----------------------------------------------------------------------
-# 脉冲统计与毛刺检测（对应 proto_stats.py）
+# Pulse statistics and glitch detection (matches proto_stats.py)
 # ----------------------------------------------------------------------
 BINS_MS = [(0, 0.1), (0.1, 0.2), (0.2, 0.5), (0.5, 1), (1, 2), (2, 5),
            (5, 10), (10, 20), (20, 50), (50, 1e9)]
@@ -135,18 +183,18 @@ BIN_LABEL = ["<0.1ms", "0.1~0.2", "0.2~0.5", "0.5~1", "1~2", "2~5",
 
 
 def load(path, rate):
-    """读取 .sr 或 .bin → (rate, samples)。"""
+    """Read a .sr or .bin file -> (rate, samples)."""
     if path.lower().endswith(".sr"):
         r, s = core.read_sr(path)
         if rate:
             r = rate
         return r, s
-    r = rate or 10000
+    r = rate or _default_rate()
     return r, core.read_bin(path, r)[1]
 
 
 def analyze(bits, rate, glitch_s):
-    """单通道体检，返回指标 dict。"""
+    """Single-channel health check; return a metrics dict."""
     n = len(bits)
     dt = 1.0 / rate
     segs = pulse_widths(bits, rate)     # [(start, level, width_s), ...]
@@ -169,7 +217,7 @@ def analyze(bits, rate, glitch_s):
                     highs.append(falls[fi] - r)
             if highs:
                 duty = statistics.mean(highs) * dt / per * 100.0
-    # 宽度统计：剔除首尾两个可能被截断的段
+    # Width statistics: drop the first and last segments that may be truncated
     body = segs[1:-1] if len(segs) >= 3 else segs
     widths = [w for (_, _, w) in body]
     stats = None
@@ -177,14 +225,14 @@ def analyze(bits, rate, glitch_s):
         stats = {"min": min(widths), "max": max(widths),
                  "mean": statistics.mean(widths),
                  "median": statistics.median(widths), "count": len(widths)}
-    # 直方图
+    # Histogram
     hist = [0] * len(BINS_MS)
     for w in widths:
         for bi, (lo, hi) in enumerate(BINS_MS):
             if lo * 1e-3 <= w < hi * 1e-3:
                 hist[bi] += 1
                 break
-    # 毛刺：比阈值窄的脉冲
+    # Glitches: pulses narrower than the threshold
     glitches = [(s, lvl, w) for (s, lvl, w) in body if w < glitch_s]
     return {"edges": edges, "freq": freq, "duty": duty, "stats": stats,
             "hist": hist, "glitches": glitches}
@@ -193,40 +241,46 @@ def analyze(bits, rate, glitch_s):
 def report_channel(ch, res, rate, glitch_s):
     print(f"\n---- D{ch} ----")
     if res["edges"] == 0:
-        print("  静默：整段无跳变（疑似悬空/常电平/未接线）")
+        print(_("  Silent: no transitions in the whole segment (likely floating / constant level / not wired)"))
         return
-    line = f"  翻转 {res['edges']} 次"
+    parts = [_("  transitions {edges}").format(edges=res["edges"])]
     if res["freq"]:
-        line += f" | 频率≈{res['freq']:.1f} Hz"
+        parts.append(_("freq~{freq:.1f} Hz").format(freq=res["freq"]))
     if res["duty"] is not None:
-        line += f" | 占空比≈{res['duty']:.1f}%"
-    print(line)
+        parts.append(_("duty~{duty:.1f}%").format(duty=res["duty"]))
+    print(" | ".join(parts))
     s = res["stats"]
     if s:
-        print(f"  脉冲宽度: 最小 {s['min']*1e6:.0f}us | 中位 {s['median']*1e6:.0f}us | "
-              f"平均 {s['mean']*1e6:.0f}us | 最大 {s['max']*1e6:.0f}us （{s['count']} 段）")
+        print(_("  Pulse width: min {mn:.0f}us | median {median:.0f}us | "
+                "mean {mean:.0f}us | max {mx:.0f}us ({count} segments)").format(
+                    mn=s['min']*1e6, median=s['median']*1e6,
+                    mean=s['mean']*1e6, mx=s['max']*1e6, count=s['count']))
     mx = max(res["hist"]) or 1
-    print("  宽度直方图:")
+    print(_("  Width histogram:"))
     for bi in range(len(BINS_MS)):
         c = res["hist"][bi]
         if c:
             print(f"    {BIN_LABEL[bi]:>8} {c:4d}  {'█' * max(1, int(c / mx * 36))}")
     if res["glitches"]:
-        print(f"  [!] 毛刺（<{glitch_s*1e6:.0f}us）{len(res['glitches'])} 处:")
+        print(_("  [!] Glitches (< {us:.0f}us): {n} found:").format(
+            us=glitch_s*1e6, n=len(res['glitches'])))
         for (s_i, lvl, w) in res["glitches"][:12]:
-            print(f"    {s_i / rate * 1000:8.3f} ms  宽 {w*1e6:.0f}us  电平={lvl}")
+            print(_("    {ms:8.3f} ms  width {w:.0f}us  level={lvl}").format(
+                ms=s_i / rate * 1000, w=w*1e6, lvl=lvl))
         if len(res["glitches"]) > 12:
-            print(f"    ... 其余 {len(res['glitches'])-12} 处见 CSV")
+            print(_("    ... the other {n} are in the CSV").format(
+                n=len(res['glitches'])-12))
     else:
-        print(f"  毛刺: 无（阈值 {glitch_s*1e6:.0f}us）")
+        print(_("  Glitches: none (threshold {us:.0f}us)").format(us=glitch_s*1e6))
 
 
 def pulse_stats():
-    """交互版脉冲统计与毛刺检测（对应 proto_stats.py 的 main）。"""
-    path = input("采集文件路径(.sr/.bin)，回车用解码器演示波形: ").strip()
+    """Interactive pulse statistics and glitch detection (matches proto_stats.py main)."""
+    path = input(_("Capture file path (.sr/.bin), Enter to use a decoder demo waveform: ")).strip()
+    dflt = _default_rate()
     if path:
-        raw_rate = console.read_int("采样率(回车默认10000): ", 10000)
-        rate = raw_rate if raw_rate is not None else 10000
+        raw_rate = console.read_int(_("Sample rate in Hz (Enter defaults to {rate}): ").format(rate=dflt), dflt)
+        rate = raw_rate if raw_rate is not None else dflt
         r, samples = load(path, rate)
         rate = r
         src = path
@@ -234,34 +288,34 @@ def pulse_stats():
         deck_name = console.choose_decoder()
         if deck_name is None:
             return
-        rate = console.read_int("采样率(回车默认10000): ", 10000)
+        rate = console.read_int(_("Sample rate in Hz (Enter defaults to {rate}): ").format(rate=dflt), dflt)
         if rate is None:
-            rate = 10000
+            rate = dflt
         samples = core.DECKS[deck_name]["make"](rate)
-        src = f"演示波形 {deck_name}（{core.DECKS[deck_name]['desc']}）"
+        src = f"demo waveform {deck_name} ({core.DECKS[deck_name]['desc']})"
 
-    raw = input("毛刺阈值us(回车默认200): ").strip()
+    raw = input(_("Glitch threshold us (Enter defaults to 200): ")).strip()
     try:
         glitch_us = float(raw) if raw else 200.0
     except ValueError:
         glitch_us = 200.0
-    raw = input("通道列表(逗号分隔, 回车默认全部): ").strip()
+    raw = input(_("Channel list (comma-separated, Enter defaults to all): ")).strip()
     if raw:
         try:
             chs = [int(x) for x in raw.split(",")]
         except ValueError:
-            print("通道列表无效，使用全部通道")
-            chs = list(range(8))
+            print(_("Invalid channel list, using all channels"))
+            chs = list(range(_channel_count()))
     else:
-        chs = list(range(8))
-    out = input("CSV 输出路径(回车默认 proto_stats_报告.csv): ").strip() \
-        or os.path.join(os.getcwd(), "proto_stats_报告.csv")
+        chs = list(range(_channel_count()))
+    out = input(_("CSV output path (Enter defaults to proto_stats_report.csv): ")).strip() \
+        or os.path.join(os.getcwd(), "proto_stats_report.csv")
 
     glitch_s = glitch_us * 1e-6
     print("=" * 64)
-    print(f"脉冲统计与毛刺检测  |  {src}")
-    print(f"采样率 {rate} Hz · {len(samples)} 点"
-          f"（{len(samples)/rate*1000:.1f} ms） · 毛刺阈值 {glitch_us:.0f}us")
+    print(_("Pulse statistics and glitch detection  |  {src}").format(src=src))
+    print(_("Sample rate {rate} Hz - {n} points ({ms:.1f} ms) - glitch threshold {us:.0f}us").format(
+        rate=rate, n=len(samples), ms=len(samples)/rate*1000, us=glitch_us))
     results = {}
     for ch in chs:
         res = analyze(channel_bits(samples, ch), rate, glitch_s)
@@ -270,29 +324,29 @@ def pulse_stats():
 
     with open(out, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["通道", "类别", "时间ms", "数值", "说明"])
+        w.writerow(["Channel", "Category", "Time ms", "Value", "Notes"])
         for ch in chs:
             r = results[ch]
             s = r["stats"]
-            w.writerow([f"D{ch}", "SUMMARY", "", f"{r['edges']}", "翻转次数"])
+            w.writerow([f"D{ch}", "SUMMARY", "", f"{r['edges']}", "edge count"])
             if r["freq"]:
-                w.writerow([f"D{ch}", "SUMMARY", "", f"{r['freq']:.2f}", "平均频率Hz"])
+                w.writerow([f"D{ch}", "SUMMARY", "", f"{r['freq']:.2f}", "mean frequency Hz"])
             if r["duty"] is not None:
-                w.writerow([f"D{ch}", "SUMMARY", "", f"{r['duty']:.2f}", "平均占空比%"])
+                w.writerow([f"D{ch}", "SUMMARY", "", f"{r['duty']:.2f}", "mean duty %"])
             if s:
-                w.writerow([f"D{ch}", "SUMMARY", "", f"{s['min']*1e6:.0f}", "最小脉宽us"])
-                w.writerow([f"D{ch}", "SUMMARY", "", f"{s['max']*1e6:.0f}", "最大脉宽us"])
+                w.writerow([f"D{ch}", "SUMMARY", "", f"{s['min']*1e6:.0f}", "min pulse width us"])
+                w.writerow([f"D{ch}", "SUMMARY", "", f"{s['max']*1e6:.0f}", "max pulse width us"])
             for (s_i, lvl, wd) in r["glitches"]:
                 w.writerow([f"D{ch}", "GLITCH", f"{s_i/rate*1000:.3f}",
-                            f"{wd*1e6:.0f}us", f"电平={lvl}"])
-    print(f"\n报告已导出: {out}")
+                            f"{wd*1e6:.0f}us", f"level={lvl}"])
+    print(_("\nReport exported: {out}").format(out=out))
 
 
 # ----------------------------------------------------------------------
-# 双波形对比（对应 proto_diff.py）
+# Dual-waveform diff (matches proto_diff.py)
 # ----------------------------------------------------------------------
 def diff_segments(a_bits, b_bits):
-    """返回差异区间 [(start, end_exclusive), ...]。"""
+    """Return the differing intervals [(start, end_exclusive), ...]."""
     segs = []
     start = None
     for i in range(len(a_bits)):
@@ -314,16 +368,17 @@ def run_diff(path_a, path_b, rate=None, csv_path=None):
     n = min(len(A), len(B))
     dt = 1.0 / r
     print("=" * 64)
-    print("双波形对比报告（A=基准 · B=待测）")
-    print(f"A = {path_a}  ({len(A)} 点)")
-    print(f"B = {path_b}  ({len(B)} 点)")
+    print(_("Dual-waveform diff report (A=reference, B=device under test)"))
+    print(f"A = {path_a}  ({len(A)} points)")
+    print(f"B = {path_b}  ({len(B)} points)")
     if len(A) != len(B):
-        print(f"长度不同：仅对比重叠部分 {n} 点")
+        print(_("Different lengths: comparing only the overlapping {n} points").format(n=n))
     print("=" * 64)
 
     first_global = None
     per = []
-    for ch in range(8):
+    nch = _channel_count()
+    for ch in range(nch):
         ab = channel_bits(A, ch)[:n]
         bb = channel_bits(B, ch)[:n]
         segs = diff_segments(ab, bb)
@@ -333,21 +388,22 @@ def run_diff(path_a, path_b, rate=None, csv_path=None):
         per.append((ch, cnt, segs))
 
     total = sum(c for (_, c, _) in per)
-    sim = 100.0 * (1.0 - total / (n * 8.0)) if n else 100.0
-    print(f"\n总体相似度: {sim:.4f}%   差异采样点: {total} / {n * 8}")
+    sim = 100.0 * (1.0 - total / (n * float(nch))) if n else 100.0
+    print(f"\nOverall similarity: {sim:.4f}%   differing sample points: {total} / {n * nch}")
     if first_global is not None:
-        print(f"首个差异: {first_global * dt * 1000:.3f} ms (第 {first_global} 点)")
-    print("\n通道     差异点     占比     差异区间数")
+        print(f"First difference: {first_global * dt * 1000:.3f} ms (point {first_global})")
+    print("\nChannel  Diff points  Share  Diff intervals")
     for (ch, cnt, segs) in per:
         print(f"  D{ch}    {cnt:7d}   {cnt / n * 100:6.2f}%    {len(segs):6d}")
 
-    # ASCII 对照带：围绕首个差异
+    # ASCII comparison band around the first difference
     if first_global is not None:
         w = 80
         lo = max(0, first_global - w // 2)
         hi = min(n, lo + w)
-        print(f"\n-- 局部对照（第 {lo}~{hi} 点，█=高 _=低 ^=差异）--")
-        for ch in range(8):
+        print(_("\n-- Local comparison (points {lo}-{hi}, █=high _=low ^=diff) --").format(
+            lo=lo, hi=hi))
+        for ch in range(nch):
             ab = channel_bits(A, ch)[:n]
             bb = channel_bits(B, ch)[:n]
             la = "".join("█" if ab[i] else "_" for i in range(lo, hi))
@@ -356,43 +412,43 @@ def run_diff(path_a, path_b, rate=None, csv_path=None):
             if mark.strip():
                 print(f"D{ch} A {la}\n    B {lb}\n      {mark}")
 
-    # CSV 差异清单
-    out = csv_path or os.path.join(os.getcwd(), "proto_diff_报告.csv")
+    # CSV diff list
+    out = csv_path or os.path.join(os.getcwd(), "proto_diff_report.csv")
     with open(out, "w", newline="", encoding="utf-8-sig") as f:
         wcsv = csv.writer(f)
-        wcsv.writerow(["通道", "起始ms", "结束ms", "差异点数"])
+        wcsv.writerow(["Channel", "Start ms", "End ms", "Diff points"])
         for (ch, cnt, segs) in per:
             for (s, e) in segs:
                 wcsv.writerow([f"D{ch}", f"{s * dt * 1000:.3f}",
                                f"{e * dt * 1000:.3f}", e - s])
-    print(f"\n差异区间清单已导出: {out}")
+    print(_("\nDiff interval list exported: {out}").format(out=out))
     return sim
 
 
 def diff_flow():
-    """交互版双波形对比（对应 proto_diff.py 的 main）。"""
-    path_a = input("基准波形 A 路径(.sr/.bin): ").strip()
+    """Interactive dual-waveform diff (matches proto_diff.py main)."""
+    path_a = input(_("Reference waveform A path (.sr/.bin): ")).strip()
     if not path_a:
         return
-    path_b = input("待测波形 B 路径(.sr/.bin): ").strip()
+    path_b = input(_("Waveform B under test path (.sr/.bin): ")).strip()
     if not path_b:
         return
-    raw = input("采样率(仅 .bin, 回车自动): ").strip()
+    raw = input(_("Sample rate (.bin only, Enter for auto): ")).strip()
     rate = None
     if raw:
         try:
             rate = int(raw)
         except ValueError:
             rate = None
-    csv_path = input("CSV 输出路径(回车默认 proto_diff_报告.csv): ").strip() or None
+    csv_path = input(_("CSV output path (Enter defaults to proto_diff_report.csv): ")).strip() or None
     run_diff(path_a, path_b, rate, csv_path)
 
 
 # ----------------------------------------------------------------------
-# 交互式波形浏览器导出（对应 proto_browser.py）
+# Interactive waveform browser export (matches proto_browser.py)
 # ----------------------------------------------------------------------
 TEMPLATE = r"""<!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>@@TITLE@@</title>
@@ -411,7 +467,7 @@ th{background:#11161d;color:#8fb0cc}
 </style>
 </head>
 <body>
-<div id="bar"><b>@@TITLE@@</b> ｜ 滚轮缩放 · 按住拖动平移 · 单击=A光标 · Shift+单击=B光标</div>
+<div id="bar"><b>@@TITLE@@</b> | wheel zoom - drag to pan - click = cursor A - Shift+click = cursor B</div>
 <canvas id="cv" width="1200" height="260"></canvas>
 <div id="info"></div>
 <div id="events"></div>
@@ -449,10 +505,10 @@ function draw(){
   }
   if(curA!==null){cx.strokeStyle='#f87171';cx.beginPath();cx.moveTo(idxToX(curA),0);cx.lineTo(idxToX(curA),H);cx.stroke();}
   if(curB!==null){cx.strokeStyle='#38bdf8';cx.beginPath();cx.moveTo(idxToX(curB),0);cx.lineTo(idxToX(curB),H);cx.stroke();}
-  var msg='视图 '+v0+'~'+v1+' / '+SAMPLES.length+' 点 · '+spp.toFixed(2)+' 点/像素';
+  var msg='view '+v0+'~'+v1+' / '+SAMPLES.length+' points - '+spp.toFixed(2)+' points/pixel';
   if(curA!==null){msg+='  |  A@'+((curA/RATE)*1000).toFixed(3)+'ms';}
   if(curB!==null){msg+='  |  B@'+((curB/RATE)*1000).toFixed(3)+'ms';}
-  if(curA!==null&&curB!==null){msg+='  |  Δt='+(Math.abs(curB-curA)/RATE*1000).toFixed(3)+'ms';}
+  if(curA!==null&&curB!==null){msg+='  |  dt='+(Math.abs(curB-curA)/RATE*1000).toFixed(3)+'ms';}
   document.getElementById('info').textContent=msg;
 }
 cv.addEventListener('wheel',function(ev){ev.preventDefault();
@@ -476,8 +532,8 @@ cv.addEventListener('click',function(ev){
 function jump(i){v0=Math.max(0,Math.min(SAMPLES.length-1,i-W*spp/2));draw();}
 (function(){
   var box=document.getElementById('events');
-  if(!EVENTS.length){box.innerHTML='<div style="color:#5b6f83;padding:4px 0">无解码事件（未叠加解码器）</div>';return;}
-  var n=Math.min(EVENTS.length,300), html='<div style="padding:4px 0;color:#8fb0cc">解码事件（前'+n+'条，点击跳转）：</div>';
+  if(!EVENTS.length){box.innerHTML='<div style="color:#5b6f83;padding:4px 0">No decoded events (no decoder overlaid)</div>';return;}
+  var n=Math.min(EVENTS.length,300), html='<div style="padding:4px 0;color:#8fb0cc">Decoded events (first '+n+', click to jump):</div>';
   for(var i=0;i<n;i++){
     var e=EVENTS[i];
     var tx=String(e.text).replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -495,10 +551,11 @@ draw();
 
 
 def build_html(title, rate, samples, events):
-    """生成单文件 HTML。"""
-    # 每通道统计
+    """Build a single-file HTML report."""
+    # Per-channel statistics
     stats_rows = []
-    for ch in range(8):
+    nch = _channel_count()
+    for ch in range(nch):
         bits = channel_bits(samples, ch)
         rises = [i for i in range(1, len(bits)) if bits[i - 1] == 0 and bits[i] == 1]
         falls = [i for i in range(1, len(bits)) if bits[i - 1] == 1 and bits[i] == 0]
@@ -520,12 +577,12 @@ def build_html(title, rate, samples, events):
                     duty_txt = f"{statistics.mean(highs) / rate / per * 100:.1f}%"
         stats_rows.append(f"<tr><td>D{ch}</td><td>{freq_txt}</td>"
                           f"<td>{duty_txt}</td><td>{edges}</td></tr>")
-    stats_html = ("<table><tr><th>通道</th><th>平均频率</th><th>平均占空比</th>"
-                  "<th>翻转次数</th></tr>" + "".join(stats_rows) + "</table>")
+    stats_html = ("<table><tr><th>Channel</th><th>Mean frequency</th><th>Mean duty</th>"
+                  "<th>Edge count</th></tr>" + "".join(stats_rows) + "</table>")
 
     title_safe = title.replace("&", "&amp;").replace("<", "&lt;")
-    info = (f"采样率 {rate} Hz · {len(samples)} 点 · "
-            f"时长 {len(samples) / rate * 1000:.1f} ms · 事件 {len(events)} 条")
+    info = (f"Sample rate {rate} Hz - {len(samples)} points - "
+            f"duration {len(samples) / rate * 1000:.1f} ms - events {len(events)}")
     js_events = json.dumps([{"t": e["t"], "ch": e["ch"], "type": e["type"],
                              "text": e["text"]} for e in events],
                            ensure_ascii=False)
@@ -540,96 +597,102 @@ def build_html(title, rate, samples, events):
 
 
 def html_export():
-    """交互版单文件 HTML 波形导出（对应 proto_browser.py 的 main）。"""
-    path = input("采集文件路径(.sr/.bin)，回车用解码器演示波形: ").strip()
+    """Interactive single-file HTML waveform export (matches proto_browser.py main)."""
+    path = input(_("Capture file path (.sr/.bin), Enter to use a decoder demo waveform: ")).strip()
     if path:
         r, samples = load(path, None)
         rate = r
-        dec_name = input("叠加解码器名(回车跳过): ").strip()
+        dec_name = input(_("Overlay decoder name (Enter to skip): ")).strip()
         events = []
         if dec_name:
             if dec_name not in core.DECKS:
-                print("未知解码器:", dec_name, "可选:", list(core.DECKS))
+                print(_("Unknown decoder:"), dec_name, _("available:"), list(core.DECKS))
                 return
             try:
                 events = core.DECKS[dec_name]["decode"](samples, rate)
             except Exception as exc:
-                print("解码失败(忽略):", exc)
-        title = f"{os.path.basename(path)} · {rate} Hz"
+                print(_("Decode failed (ignored):"), exc)
+        title = f"{os.path.basename(path)} - {rate} Hz"
     else:
         deck_name = console.choose_decoder()
         if deck_name is None:
             return
-        rate = console.read_int("采样率(回车默认10000): ", 10000)
+        dflt = _default_rate()
+        rate = console.read_int(_("Sample rate in Hz (Enter defaults to {rate}): ").format(rate=dflt), dflt)
         if rate is None:
-            rate = 10000
+            rate = dflt
         samples = core.DECKS[deck_name]["make"](rate)
         events = core.DECKS[deck_name]["decode"](samples, rate)
-        title = f"{deck_name} · {core.DECKS[deck_name]['desc']} 演示波形"
+        title = f"{deck_name} - {core.DECKS[deck_name]['desc']} demo waveform"
 
-    out = input("输出文件(回车默认 proto_wave.html): ").strip() \
+    out = input(_("Output file (Enter defaults to proto_wave.html): ")).strip() \
         or os.path.join(os.getcwd(), "proto_wave.html")
     html = build_html(title, rate, samples, events)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"已生成: {out}  ({os.path.getsize(out)} 字节)")
-    ans = input("生成后自动打开浏览器?(回车=是, n=否): ").strip().lower()
+    print(_("Created: {out}  ({bytes} bytes)").format(out=out, bytes=os.path.getsize(out)))
+    ans = input(_("Open the browser automatically after generation? (Enter=yes, n=no): ")).strip().lower()
     if ans != "n":
         try:
             os.startfile(out)
         except Exception:
-            print("（未能自动打开，请手动双击该文件）")
+            print(_("(Could not open automatically; double-click the file manually)"))
 
 
 # ----------------------------------------------------------------------
-# 文件分析：UART 解码 + D0 测量
+# File analysis: UART decode + first-channel measurement
 # ----------------------------------------------------------------------
 def file_analysis():
-    """打开一个采集文件，跑 UART 文本解码与 D0 测量。"""
-    path = input("采集文件路径(.sr/.bin): ").strip()
+    """Open a capture file and run UART text decoding plus first-channel
+measurement."""
+    path = input(_("Capture file path (.sr/.bin): ")).strip()
     if not path:
         return
     try:
         rate, samples = core.acquire_file(path)
     except Exception as exc:
-        print("读取失败:", exc)
+        print(_("Read failed:"), exc)
         return
-    print(f"已打开: {path}")
-    print(f"采样率 {rate} Hz · {len(samples)} 点 · 时长 {len(samples)/rate*1000:.1f} ms")
+    print(_("Opened: {path}").format(path=path))
+    print(_("Sample rate {rate} Hz - {n} points - duration {ms:.1f} ms").format(
+        rate=rate, n=len(samples), ms=len(samples)/rate*1000))
 
     bits = channel_bits(samples, 0)
     frames = core.scan_frames(bits)
     text = "".join(c for _, c in frames)
-    print("\n-- UART 解码 (D0, 1000bps 8N1) --")
-    print("  接收到:", repr(text) if text else "(未解码出完整帧)")
+    print(_("\n-- UART decode ({ch}, 1000bps 8N1) --").format(
+        ch=_channel_names()[0]))
+    print(_("  Received: {text}").format(
+        text=repr(text) if text else "(no complete frame decoded)"))
 
-    m = core.measure(bits)
-    print("\n-- D0 测量 --")
+    m = core.measure(bits, rate)
+    print(_("\n-- {ch} measurement --").format(ch=_channel_names()[0]))
     if m:
-        print(f"  频率      : {m['freq']:.1f} Hz")
-        print(f"  周期      : {m['period']*1000:.3f} ms  "
-              f"(min {m['pmin']*1000:.3f} / max {m['pmax']*1000:.3f})")
-        print(f"  高电平脉宽: {m['high']*1000:.3f} ms")
-        print(f"  低电平脉宽: {m['low']*1000:.3f} ms")
-        print(f"  占空比    : {m['duty']:.1f} %   ({m['cycles']} 周期平均)")
+        print(_("  Frequency      : {freq:.1f} Hz").format(freq=m['freq']))
+        print(_("  Period         : {period:.3f} ms  (min {pmin:.3f} / max {pmax:.3f})").format(
+            period=m['period']*1000, pmin=m['pmin']*1000, pmax=m['pmax']*1000))
+        print(_("  High pulse     : {high:.3f} ms").format(high=m['high']*1000))
+        print(_("  Low pulse      : {low:.3f} ms").format(low=m['low']*1000))
+        print(_("  Duty           : {duty:.1f} %   ({cycles} cycles averaged)").format(
+            duty=m['duty'], cycles=m['cycles']))
     else:
-        print("  信号不足")
+        print(_("  Signal insufficient"))
 
 
 def run():
-    """离线工具子菜单：选择 0 返回主菜单。"""
+    """Offline tools submenu: choice 0 returns to the main menu."""
     while True:
         print()
-        print("===== 离线工具 =====")
-        print("  [1] 全量离线自检报告（无需硬件 · 零烧录 · 验收用）")
-        print("  [2] PPM 多通道扩展验证")
-        print("  [3] 导出全部事件 CSV")
-        print("  [4] 脉冲统计与毛刺检测")
-        print("  [5] 双波形对比")
-        print("  [6] HTML 波形浏览器导出")
-        print("  [7] 文件分析（UART 解码 + 测量）")
-        print("  [0] 返回主菜单")
-        sel = input("选择: ").strip()
+        print(_("===== Offline tools ====="))
+        print(_("  [1] Full offline self-test report (no hardware, zero flashing, for acceptance)"))
+        print(_("  [2] PPM multi-channel extension check"))
+        print(_("  [3] Export all events to CSV"))
+        print(_("  [4] Pulse statistics and glitch detection"))
+        print(_("  [5] Dual-waveform diff"))
+        print(_("  [6] HTML waveform browser export"))
+        print(_("  [7] File analysis (UART decode + measurement)"))
+        print(_("  [0] Back to main menu"))
+        sel = input(_("Select: ")).strip()
         if sel == "1":
             report_all()
         elif sel == "2":
@@ -647,6 +710,6 @@ def run():
         elif sel == "0":
             return
         else:
-            print("无效选择")
+            print(_("Invalid choice"))
             continue
         console.pause()
