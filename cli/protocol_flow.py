@@ -6,7 +6,8 @@ Unified protocol analysis flow (matches proto_view.py):
   2) Offline demo: use each decoder's built-in test waveform, no
      hardware required
 
-The sample rate for the test waveforms comes from the current backend.
+The sample rate for the test waveforms and the live decode comes from
+the effective session rate.
 """
 import time
 from collections import deque
@@ -21,7 +22,7 @@ WINDOW = 3000
 
 
 def offline_demo(name):
-    rate = core.current_backend().capabilities.sample_rate
+    rate = core.session.effective_sample_rate()
     print(_("\n===== Offline demo: {name} (built-in test waveform, no hardware) ====="
             ).format(name=name))
     samples = core.DECKS[name]["make"](rate)
@@ -31,7 +32,7 @@ def offline_demo(name):
 
 
 def live_mode(name):
-    rate = core.current_backend().capabilities.sample_rate
+    rate = core.session.effective_sample_rate()
     port = console.choose_port()
     if port is None:
         return

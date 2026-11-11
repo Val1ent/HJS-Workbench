@@ -10,11 +10,12 @@ build/
 dist/
 
 # Runtime logs / captures (keep examples, ignore local runs)
-host/analyzer_log.csv
+analyzer_log.csv
 *.sr.tmp
 
 # Firmware build output
 firmware/src/build/
+firmware/src/build_hs/
 *.o
 *.d
 *.lst

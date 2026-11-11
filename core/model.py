@@ -10,7 +10,11 @@ firmware and never flashes the device.
             channel (1 byte per sample; unit size 1)
             bit0 = D0(PD0), bit1 = D1(PD1), ..., bit7 = D7(PD7)
             channel level = (sample >> ch) & 1
-  rate    : int, sample rate in Hz (from the current backend's capabilities)
+  rate    : int, sample rate in Hz. Callers pass the actual rate the data
+            was recorded at; every helper that needs a rate accepts an
+            explicit ``rate`` parameter and builds its time axis from it.
+            Only the default helpers below fall back to the current
+            backend's default rate; there is no global fixed rate.
 
 [Unified event format Event]
   dict: {"t": float(seconds), "ch": int(channel), "type": str(type),

@@ -18,9 +18,10 @@ WAVE_LEN      = 100
 def run():
     """Standalone analyzer screen: reads the serial port live and periodically
 refreshes the waveform + serial parameters + UART decode + measurement +
-CSV. The sample rate and channel names come from the current backend."""
+CSV. The effective sample rate and channel names come from the current
+backend session."""
     caps = core.current_backend().capabilities
-    sample_rate = caps.sample_rate
+    sample_rate = core.session.effective_sample_rate()
     dt = 1.0 / sample_rate
 
     port = console.choose_port()
@@ -58,14 +59,14 @@ CSV. The sample rate and channel names come from the current backend."""
                 pkt = core.best_packet(bits)
                 if pkt:
                     seg, decoded, g = pkt
-                    wave = ''.join('█' if x else '_' for x in seg[:WAVE_LEN])
+                    wave = ''.join('\u2588' if x else '_' for x in seg[:WAVE_LEN])
                     gaps = [g[i + 1][0] - g[i][0] for i in range(len(g) - 1)]
                     char_period = (sum(gaps) / len(gaps)) * dt if gaps else 0.0
                     baud = sample_rate / TICKS_PER_BIT
                     nchar = len(g)
                 else:
                     seg = None; decoded = ""
-                    wave = ''.join('█' if x else '_' for x in bits[-WAVE_LEN:])
+                    wave = ''.join('\u2588' if x else '_' for x in bits[-WAVE_LEN:])
                     char_period = 0.0; baud = 0.0; nchar = 0
 
                 console.clear_screen()
@@ -75,7 +76,7 @@ CSV. The sample rate and channel names come from the current backend."""
 
                 print(_("-- Terminal waveform {ch} (first 100 points of the packet = 10 ms) --"
                         ).format(ch=caps.channel_names[0]))
-                print(_("  high=█  low=_"))
+                print(_("  high=\u2588  low=_"))
                 print("  " + wave + "\n")
 
                 print(_("-- Serial parameter measurement --"))

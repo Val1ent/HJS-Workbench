@@ -37,7 +37,7 @@ GUIDE_STEPS = [
     (
         "Waveform, decode, and measurement",
         [
-            "The waveform shows channels D0-D7 at the backend sample rate (10 kHz for the CH32 board).",
+            "The waveform shows channels D0-D7 at the backend sample rate (10 kHz by default on the CH32 board, up to 1 MHz on the High-Speed port).",
             "The decode tab lists the registered protocol decoders; pick one and run it on the captured data.",
             "The measurement tab reports frequency, period, pulse widths, duty, and edge counts per channel.",
         ],

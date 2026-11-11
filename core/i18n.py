@@ -17,6 +17,8 @@ DEFAULT_LANGUAGE = "en"
 # pickers so they work before any language has been chosen.
 SUPPORTED_LANGUAGES = [
     ("en", "English"),
+    ("fr", "Français"),
+    ("de", "Deutsch"),
     ("zh_CN", "简体中文"),
     ("zh_TW", "繁體中文"),
 ]

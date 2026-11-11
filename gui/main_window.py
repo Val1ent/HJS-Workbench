@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
-"""Main window: connection area (port/points/capture/open file) + waveform
-+ decode/measure tabs + status bar + toolbar language selector."""
+"""Main window: grouped toolbar (connection / acquisition / file /
+settings) + waveform + decode/measure tabs + status bar."""
+import os
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QFileDialog, QLabel, QMainWindow,
-    QMessageBox, QPushButton, QSpinBox, QSplitter, QTabWidget, QToolBar,
+    QMessageBox, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTabWidget,
+    QToolBar, QWidget,
 )
 
 import core
-from core.config import set as config_set
-from core.i18n import SUPPORTED_LANGUAGES, _, get_language, set_language
+from core.files import format_rate
+from core.i18n import _
 from core.paths import resource_path
 from .decoder_panel import DecoderPanel
 from .measure_panel import MeasurePanel
 from .onboarding import QuickStartDialog
+from .settings_dialog import SettingsDialog
 from .signal_panel import SignalPanel
 from .waveform_view import WaveformView
 from .worker import AcquireWorker, ContinuousWorker
@@ -22,6 +26,8 @@ POINTS_DEFAULT = 3000
 POINTS_MIN = 500
 POINTS_MAX = 20000
 POINTS_STEP = 500
+
+CAPTURE_FILE_FILTER = "Capture files (*.sr *.bin);;All files (*)"
 
 
 class MainWindow(QMainWindow):
@@ -33,12 +39,16 @@ class MainWindow(QMainWindow):
         self._worker = None
         self._cont_worker = None
         self._closing = False
+        self._busy = False
+        self._cont_running = False
         self._status_msgid = "Ready"
         self._status_kwargs = {}
+        self._imported_paths = []
+        self._imported_keys = set()
 
         self._build_toolbar()
+        self._sync_rate_mode_combos()
         self._build_central()
-        self._sync_language_combo()
         self._sync_device_combo()
         self.retranslate_ui()
         self.refresh_ports()
@@ -52,6 +62,17 @@ class MainWindow(QMainWindow):
         self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
 
+        # Connection group: device selector, port selector, Refresh ports.
+        self.device_label = QLabel(" Device:")
+        self.toolbar.addWidget(self.device_label)
+        self.device_combo = QComboBox()
+        for backend in core.list_backends():
+            self.device_combo.addItem(backend.display_name, backend.id)
+        self.device_combo.activated.connect(self._on_device_changed)
+        self.toolbar.addWidget(self.device_combo)
+        self.device_info = QLabel("")
+        self.toolbar.addWidget(self.device_info)
+
         self.port_label = QLabel(" Port:")
         self.toolbar.addWidget(self.port_label)
         self.port_combo = QComboBox()
@@ -62,7 +83,25 @@ class MainWindow(QMainWindow):
         self.refresh_button.clicked.connect(self.refresh_ports)
         self.toolbar.addWidget(self.refresh_button)
 
+        # Acquisition group: sample rate, capture mode, restore defaults,
+        # sample points, Capture, Start continuous, Stop.
         self.toolbar.addSeparator()
+        self.rate_label = QLabel(" Sample rate:")
+        self.toolbar.addWidget(self.rate_label)
+        self.rate_combo = QComboBox()
+        self.rate_combo.activated.connect(self._on_rate_changed)
+        self.toolbar.addWidget(self.rate_combo)
+
+        self.mode_label = QLabel(" Mode:")
+        self.toolbar.addWidget(self.mode_label)
+        self.mode_combo = QComboBox()
+        self.mode_combo.activated.connect(self._on_mode_changed)
+        self.toolbar.addWidget(self.mode_combo)
+
+        self.restore_button = QPushButton("Restore defaults")
+        self.restore_button.clicked.connect(self.restore_session_defaults)
+        self.toolbar.addWidget(self.restore_button)
+
         self.points_label = QLabel(" Sample points:")
         self.toolbar.addWidget(self.points_label)
         self.points_spin = QSpinBox()
@@ -84,35 +123,42 @@ class MainWindow(QMainWindow):
         self.cont_stop_button.clicked.connect(self.stop_continuous)
         self.toolbar.addWidget(self.cont_stop_button)
 
+        # File group: Open file, Import, the imported-file selector, Remove.
+        self.toolbar.addSeparator()
         self.open_button = QPushButton("Open file")
         self.open_button.clicked.connect(self.open_file)
         self.toolbar.addWidget(self.open_button)
 
-        # Language selector (native names, never translated)
-        self.toolbar.addSeparator()
-        self.language_combo = QComboBox()
-        for code, name in SUPPORTED_LANGUAGES:
-            self.language_combo.addItem(name, code)
-        self.language_combo.activated.connect(self._on_language_changed)
-        self.toolbar.addWidget(self.language_combo)
+        self.import_button = QPushButton("Import")
+        self.import_button.setToolTip(_("Import capture files"))
+        self.import_button.clicked.connect(self.import_files)
+        self.toolbar.addWidget(self.import_button)
+
+        self.import_combo = QComboBox()
+        self.import_combo.setMinimumWidth(220)
+        self.import_combo.addItem(_(" (no imported files)"), None)
+        self.import_combo.activated.connect(self._on_import_selected)
+        self.toolbar.addWidget(self.import_combo)
+
+        self.remove_button = QPushButton("Remove")
+        self.remove_button.setEnabled(False)
+        self.remove_button.clicked.connect(self.remove_import)
+        self.toolbar.addWidget(self.remove_button)
+
+        # Right side: Settings and Quick start.
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.toolbar.addWidget(spacer)
+
+        self.settings_button = QPushButton("Settings")
+        self.settings_button.clicked.connect(self.open_settings)
+        self.toolbar.addWidget(self.settings_button)
 
         # Re-openable quick start guide (same content as the first-run
         # onboarding wizard)
         self.guide_button = QPushButton("Quick start")
         self.guide_button.clicked.connect(self.show_quick_start)
         self.toolbar.addWidget(self.guide_button)
-
-        # Device entry: backend picker + the real declared capabilities
-        self.toolbar.addSeparator()
-        self.device_label = QLabel(" Device:")
-        self.toolbar.addWidget(self.device_label)
-        self.device_combo = QComboBox()
-        for backend in core.list_backends():
-            self.device_combo.addItem(backend.display_name, backend.id)
-        self.device_combo.activated.connect(self._on_device_changed)
-        self.toolbar.addWidget(self.device_combo)
-        self.device_info = QLabel("")
-        self.toolbar.addWidget(self.device_info)
 
     def _build_central(self):
         self.waveform = WaveformView()
@@ -134,23 +180,16 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(splitter)
 
     # ------------------------------------------------------------------
-    # Language switching
+    # Settings and language
     # ------------------------------------------------------------------
-    def _on_language_changed(self, index):
-        code = self.language_combo.itemData(index)
-        if not code or code == get_language():
-            return
-        config_set("language", code)
-        set_language(code)
-        self._sync_language_combo()
-        self.retranslate_ui()
+    def open_settings(self):
+        """Open the modal settings dialog on top of the main window.
 
-    def _sync_language_combo(self):
-        self.language_combo.blockSignals(True)
-        idx = self.language_combo.findData(get_language())
-        if idx >= 0:
-            self.language_combo.setCurrentIndex(idx)
-        self.language_combo.blockSignals(False)
+        The dialog is the single place for user preferences (language and
+        theme); the main window is blocked while it is open.
+        """
+        dialog = SettingsDialog(self)
+        dialog.exec()
 
     def show_quick_start(self):
         """Open the re-openable quick start guide dialog."""
@@ -176,6 +215,7 @@ class MainWindow(QMainWindow):
         self._update_device_info()
         self.waveform.refresh_channels()
         self.measure.refresh_channels()
+        self._sync_rate_mode_combos()
         self._set_status("Device selected: {name}",
                          name=backend.display_name)
 
@@ -195,17 +235,145 @@ class MainWindow(QMainWindow):
                                   unit=caps.unit_size,
                                   rate=caps.sample_rate))
 
+    # ------------------------------------------------------------------
+    # Sample rate and capture mode
+    # ------------------------------------------------------------------
+    def _sync_rate_mode_combos(self):
+        """Repopulate the rate and mode selectors strictly from the current
+        backend's capabilities and select the effective session values.
+
+        The rate items show the human-readable rate and hold the integer
+        rate as item data; the mode items show the translated label and
+        hold the mode id as item data.
+        """
+        caps = core.current_backend().capabilities
+        self.rate_combo.blockSignals(True)
+        self.rate_combo.clear()
+        for rate in caps.supported_rates:
+            self.rate_combo.addItem(format_rate(rate), rate)
+        self.rate_combo.blockSignals(False)
+
+        self.mode_combo.blockSignals(True)
+        self.mode_combo.clear()
+        for mode in caps.supported_modes:
+            self.mode_combo.addItem(core.session.mode_label(mode), mode)
+        self.mode_combo.blockSignals(False)
+
+        self._select_effective_rate_mode()
+
+    def _select_effective_rate_mode(self):
+        """Move both selectors to the current effective session values and
+        refresh the mode-dependent control states."""
+        self.rate_combo.blockSignals(True)
+        index = self.rate_combo.findData(core.session.effective_sample_rate())
+        if index >= 0:
+            self.rate_combo.setCurrentIndex(index)
+        self.rate_combo.blockSignals(False)
+
+        self.mode_combo.blockSignals(True)
+        index = self.mode_combo.findData(
+            core.session.effective_capture_mode())
+        if index >= 0:
+            self.mode_combo.setCurrentIndex(index)
+        self.mode_combo.blockSignals(False)
+        self._apply_controls()
+
+    def _current_rate(self):
+        """The sample rate selected in the rate combo (never None in a
+        populated selector)."""
+        rate = self.rate_combo.currentData()
+        if rate is None:
+            rate = core.session.effective_sample_rate()
+        return rate
+
+    def _current_mode(self):
+        """The capture mode id selected in the mode combo."""
+        mode = self.mode_combo.currentData()
+        if mode is None:
+            mode = core.current_backend().capabilities.default_mode
+        return mode
+
+    def _on_rate_changed(self, index):
+        """Persist the newly selected rate immediately.
+
+        A rejected value leaves the selector on the last valid value so
+        the combo and the saved config never disagree.
+        """
+        rate = self.rate_combo.itemData(index)
+        try:
+            core.session.save_sample_rate(rate)
+        except ValueError as exc:
+            QMessageBox.warning(self, _("Cannot save"), str(exc))
+        self._select_effective_rate_mode()
+
+    def _on_mode_changed(self, index):
+        """Persist the newly selected mode immediately and apply the
+        mode-dependent control states."""
+        mode = self.mode_combo.itemData(index)
+        try:
+            core.session.save_capture_mode(mode)
+        except ValueError as exc:
+            QMessageBox.warning(self, _("Cannot save"), str(exc))
+        self._select_effective_rate_mode()
+
+    def restore_session_defaults(self):
+        """Remove the saved rate and mode and re-sync the selectors to the
+        backend defaults."""
+        core.session.reset_to_defaults()
+        self._select_effective_rate_mode()
+        self._set_status("Restored default sample rate and capture mode")
+
+    def _retranslate_mode_combo(self):
+        """Re-apply the language to the mode item labels only; the stored
+        mode ids stay unchanged."""
+        for index in range(self.mode_combo.count()):
+            mode = self.mode_combo.itemData(index)
+            if mode is not None:
+                self.mode_combo.setItemText(
+                    index, core.session.mode_label(mode))
+
+    def _apply_controls(self):
+        """Enable or disable the acquisition controls from the current
+        busy, streaming, and capture-mode state.
+
+        Burst mode disables the realtime-only controls: the sample
+        points spin box and the continuous start button. Realtime mode
+        keeps the previous behavior.
+        """
+        busy = self._busy
+        running = self._cont_running
+        realtime = self._current_mode() == "realtime"
+        for widget in (self.acquire_button, self.open_button,
+                       self.import_button, self.import_combo,
+                       self.remove_button, self.refresh_button):
+            widget.setEnabled(not busy and not running)
+        self.cont_start_button.setEnabled(realtime and not busy
+                                          and not running)
+        self.cont_stop_button.setEnabled(running and not busy)
+        self.points_spin.setEnabled(realtime and not running)
+        self.port_combo.setEnabled(not running)
+        self.rate_combo.setEnabled(not busy and not running)
+        self.mode_combo.setEnabled(not busy and not running)
+        self.restore_button.setEnabled(not busy and not running)
+
     def retranslate_ui(self):
         """Re-apply the active language to every visible string."""
         self.setWindowTitle("HJS-Workbench")
         self.toolbar.setWindowTitle(_("Capture controls"))
         self.port_label.setText(_(" Port:"))
         self.refresh_button.setText(_("Refresh ports"))
+        self.rate_label.setText(_(" Sample rate:"))
+        self.mode_label.setText(_(" Mode:"))
+        self.restore_button.setText(_("Restore defaults"))
         self.points_label.setText(_(" Sample points:"))
         self.acquire_button.setText(_("Capture"))
         self.cont_start_button.setText(_("Start continuous"))
         self.cont_stop_button.setText(_("Stop"))
         self.open_button.setText(_("Open file"))
+        self.import_button.setText(_("Import"))
+        self.import_button.setToolTip(_("Import capture files"))
+        self.remove_button.setText(_("Remove"))
+        self.settings_button.setText(_("Settings"))
         self.guide_button.setText(_("Quick start"))
         self.tabs.setTabText(0, _("Decode"))
         self.tabs.setTabText(1, _("Measure"))
@@ -214,6 +382,8 @@ class MainWindow(QMainWindow):
         self._update_device_info()
         self._render_status()
         self._retranslate_port_placeholder()
+        self._retranslate_import_placeholder()
+        self._retranslate_mode_combo()
         self.waveform.retranslate_ui()
         self.decoder.retranslate_ui()
         self.measure.retranslate_ui()
@@ -226,6 +396,11 @@ class MainWindow(QMainWindow):
             self.port_combo.setEnabled(False)
         elif self.port_combo.itemData(0) is None:
             self.port_combo.setItemText(0, _(" (no serial port detected)"))
+
+    def _retranslate_import_placeholder(self):
+        """Re-apply the language to the empty import-list placeholder row."""
+        if self.import_combo.count() and self.import_combo.itemData(0) is None:
+            self.import_combo.setItemText(0, _(" (no imported files)"))
 
     # ------------------------------------------------------------------
     # Status bar
@@ -257,6 +432,12 @@ class MainWindow(QMainWindow):
     # Capture and files
     # ------------------------------------------------------------------
     def acquire_serial(self):
+        """Route the Capture button on the current capture mode.
+
+        Realtime keeps the one-shot AcquireWorker path with the selected
+        rate; burst records the whole burst buffer through
+        acquire_burst and ignores the sample points spin box.
+        """
         port = self.port_combo.currentData()
         if port is None:
             QMessageBox.warning(
@@ -264,36 +445,110 @@ class MainWindow(QMainWindow):
                 _("No usable serial port detected. Connect the device data port, then click Refresh ports."),
             )
             return
+        rate = self._current_rate()
+        if self._current_mode() == "burst":
+            self._start_job(
+                core.acquire_burst, (port,),
+                "Capturing burst from {port}...",
+                fn_kwargs={"sample_rate": rate}, port=port,
+            )
+            return
         points = self.points_spin.value()
         self._start_job(
             core.acquire_serial, (port, points),
             "Capturing {points} points from {port}...",
-            points=points, port=port,
+            fn_kwargs={"sample_rate": rate}, points=points, port=port,
         )
 
     def open_file(self):
         start_dir = resource_path("examples")
         path, _filter = QFileDialog.getOpenFileName(
-            self, _("Open capture file"), start_dir, "Capture files (*.sr *.bin);;All files (*)",
+            self, _("Open capture file"), start_dir, CAPTURE_FILE_FILTER,
         )
         if not path:
             return
         self._start_job(core.acquire_file, (path,), "Reading file...")
 
-    def _start_job(self, fn, args, status_msgid, **status_kwargs):
+    # ------------------------------------------------------------------
+    # User file import (multi-file management, in-app references only)
+    # ------------------------------------------------------------------
+    def import_files(self):
+        """Add the chosen capture files to the imported-file list.
+
+        The files are registered in the application, not copied or
+        modified anywhere. Duplicates are rejected by absolute path.
+        """
+        start_dir = resource_path("examples")
+        paths, _filter = QFileDialog.getOpenFileNames(
+            self, _("Import capture files"), start_dir, CAPTURE_FILE_FILTER,
+        )
+        if not paths:
+            return
+        added = 0
+        duplicates = []
+        for raw in paths:
+            path = os.path.abspath(raw)
+            key = os.path.normcase(path)
+            if key in self._imported_keys:
+                duplicates.append(path)
+                continue
+            self._imported_keys.add(key)
+            self._imported_paths.append(path)
+            self._drop_import_placeholder()
+            self.import_combo.addItem(path, path)
+            added += 1
+        self.remove_button.setEnabled(bool(self._imported_paths))
+        if added:
+            self._set_status("Imported {n} file(s)", n=added)
+        elif duplicates:
+            self._set_status("File already imported: {path}",
+                             path=duplicates[-1])
+
+    def _drop_import_placeholder(self):
+        """Remove the empty-list placeholder before adding a real entry."""
+        if (self.import_combo.count() == 1
+                and self.import_combo.itemData(0) is None):
+            self.import_combo.clear()
+
+    def _on_import_selected(self, index):
+        """Load the selected imported file through the shared core loader."""
+        path = self.import_combo.itemData(index)
+        if not path:
+            return
+        self._start_job(core.acquire_file, (path,), "Reading file...")
+
+    def remove_import(self):
+        """Remove the selected entry from the in-app import list.
+
+        Only the registration is removed; the file on disk is never
+        modified or deleted.
+        """
+        path = self.import_combo.currentData()
+        if path is None:
+            return
+        index = self.import_combo.currentIndex()
+        self.import_combo.removeItem(index)
+        self._imported_keys.discard(os.path.normcase(path))
+        if path in self._imported_paths:
+            self._imported_paths.remove(path)
+        if not self._imported_paths:
+            self.import_combo.addItem(_(" (no imported files)"), None)
+            self.remove_button.setEnabled(False)
+        self._set_status("Removed from the import list: {path}", path=path)
+
+    def _start_job(self, fn, args, status_msgid, fn_kwargs=None,
+                   **status_kwargs):
         self._set_busy(True)
         self._set_status(status_msgid, **status_kwargs)
-        self._worker = AcquireWorker(fn, args, parent=self)
+        self._worker = AcquireWorker(fn, args, kwargs=fn_kwargs, parent=self)
         self._worker.succeeded.connect(self._on_success)
         self._worker.failed.connect(self._on_failure)
         self._worker.finished.connect(self._on_finished)
         self._worker.start()
 
     def _set_busy(self, busy):
-        for widget in (self.acquire_button, self.open_button,
-                       self.refresh_button, self.cont_start_button,
-                       self.cont_stop_button):
-            widget.setEnabled(not busy)
+        self._busy = busy
+        self._apply_controls()
 
     # ------------------------------------------------------------------
     # Continuous capture
@@ -317,7 +572,8 @@ class MainWindow(QMainWindow):
             )
             return
         capacity = self.points_spin.value()
-        worker = ContinuousWorker(port, capacity, parent=self)
+        worker = ContinuousWorker(port, capacity,
+                                  rate=self._current_rate(), parent=self)
         worker.snapshot.connect(self._on_continuous_snapshot)
         worker.failed.connect(self._on_continuous_failure)
         worker.finished.connect(self._on_continuous_finished)
@@ -342,12 +598,8 @@ class MainWindow(QMainWindow):
         open file, refresh, sample points, port picker) are disabled so
         the two modes cannot run together on the same port.
         """
-        self.cont_start_button.setEnabled(not running)
-        self.cont_stop_button.setEnabled(running)
-        for widget in (self.acquire_button, self.open_button,
-                       self.refresh_button, self.port_combo,
-                       self.points_spin):
-            widget.setEnabled(not running)
+        self._cont_running = running
+        self._apply_controls()
 
     def _on_continuous_snapshot(self, rate, samples):
         if self._closing:

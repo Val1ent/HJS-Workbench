@@ -2,9 +2,14 @@
 # HJS-Workbench - CH32H417 firmware standalone Makefile
 # Clone the repo, then build with the WCH RISC-V toolchain (riscv-wch-elf-gcc):
 #
-#   make            # build UART firmware (default)
+#   make            # build the Full-Speed realtime firmware (default)
+#   make HS=1       # build the USB High-Speed burst firmware
 #   make SQUARE=1   # build the fixed 1 kHz square-wave firmware
-#   make clean
+#   make clean      # remove the build/ output folder
+#   make HS=1 clean # remove the build_hs/ output folder
+#
+# HS=1 and SQUARE=1 are alternative application variants and must not be
+# combined in one invocation.
 #
 # The toolchain ships with MounRiver Studio (RISC-V Embedded GCC12).
 # Override the prefix if needed:   make CROSS=riscv-none-elf-
@@ -29,11 +34,34 @@ CFLAGS = $(ARCH) -fmax-errors=20 -Os -fmessage-length=0 -fsigned-char \
 C_SRCS  = $(wildcard Common/*.c User/*.c Core/*.c Debug/*.c Peripheral/src/*.c)
 ASM_SRCS = Startup/startup_ch32h417_v3f.S
 
+# USB High-Speed burst capture firmware: keep the shared sampling/signal
+# logic in hardware.c, swap out only the Full-Speed device stack, and use
+# the High-Speed main loop. Separate output folder.
+ifeq ($(HS),1)
+BUILD    = build_hs
+CFLAGS  += -DHS_BUILD
+C_SRCS  := $(filter-out Common/ch32h417_usbfs_device.c Common/usb_desc.c,$(C_SRCS))
+C_SRCS  += hs_link_hardware.c
+TARGET   = $(BUILD)/HJS-Workbench-HS
+else
+# Default Full-Speed build: exclude the High-Speed sources
+C_SRCS  := $(filter-out Common/ch32h417_usbhs_device.c Common/usb_desc_hs.c,$(C_SRCS))
+TARGET   = $(BUILD)/HJS-Workbench
+endif
+
 # Build the square-wave firmware by swapping in the alternative hardware.c
+# (default Full-Speed path only; not combinable with HS=1)
 ifeq ($(SQUARE),1)
 CFLAGS += -D SQUARE_BUILD
 C_SRCS := $(filter-out Common/hardware.c,$(C_SRCS))
 C_SRCS += alternative_square_hardware.c
+endif
+
+# Optional reproducible-build pin: fix the embedded __DATE__/__TIME__ strings
+# so a rebuild is byte-identical to a prebuilt release image.
+#   make REPRO=1 REPRO_DATE="Nov  8 2026" REPRO_TIME="22:06:15"
+ifeq ($(REPRO),1)
+CFLAGS += -Wno-builtin-macro-redefined -D__DATE__='"$(REPRO_DATE)"' -D__TIME__='"$(REPRO_TIME)"'
 endif
 
 OBJS = $(patsubst %.c,$(BUILD)/%.o,$(C_SRCS)) \
@@ -42,8 +70,6 @@ OBJS = $(patsubst %.c,$(BUILD)/%.o,$(C_SRCS)) \
 LDSCRIPT = Ld/V3F/Link_v3f.ld
 LDFLAGS  = $(ARCH) -T $(LDSCRIPT) -nostartfiles -Xlinker --gc-sections \
            -Wl,-Map=$(BUILD)/firmware.map --specs=nano.specs --specs=nosys.specs
-
-TARGET = $(BUILD)/HJS-Workbench
 
 all: $(TARGET).hex $(TARGET).bin
 	$(SIZE) --format=berkeley $(TARGET).elf

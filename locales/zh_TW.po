@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 msgid ""
 msgstr ""
-"Project-Id-Version: HJS-Workbench 0.3.0\n"
+"Project-Id-Version: HJS-Workbench 0.6.2\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -12,15 +12,6 @@ msgstr "\n（{n} 個取樣點，{m} 個事件）"
 
 msgid "\n-- Built-in UART decode --"
 msgstr "\n-- 內建 UART 解碼 --"
-
-msgid "\n-- {ch} detailed measurement --"
-msgstr "\n-- {ch} 詳細量測 --"
-
-msgid "\n-- {ch} live measurement --"
-msgstr "\n-- {ch} 即時量測 --"
-
-msgid "\n-- {ch} measurement --"
-msgstr "\n-- {ch} 量測 --"
 
 msgid "\n-- Data log --  {rows} rows written -> {path}"
 msgstr "\n-- 資料日誌 --  已寫入 {rows} 列 -> {path}"
@@ -33,6 +24,15 @@ msgstr "\n-- 局部對比（點 {lo}-{hi}，█=高 _=低 ^=差異）--"
 
 msgid "\n-- UART decode ({ch}, 1000bps 8N1) --"
 msgstr "\n-- UART 解碼（{ch}，1000bps 8N1）--"
+
+msgid "\n-- {ch} detailed measurement --"
+msgstr "\n-- {ch} 詳細量測 --"
+
+msgid "\n-- {ch} live measurement --"
+msgstr "\n-- {ch} 即時量測 --"
+
+msgid "\n-- {ch} measurement --"
+msgstr "\n-- {ch} 量測 --"
 
 msgid "\n===== Offline demo: {name} (built-in test waveform, no hardware) ====="
 msgstr "\n===== 離線示範：{name}（內建測試波形，無需硬體）====="
@@ -76,14 +76,17 @@ msgstr "    {ms:8.3f} ms  寬度 {w:.0f}us  電位={lvl}"
 msgid "  Baud {baud:.0f} bps | Char period {period:.3f} ms | Packet length {nchar} chars | Frame format 8N1"
 msgstr "  鮑率 {baud:.0f} bps | 字元週期 {period:.3f} ms | 封包長度 {nchar} 字元 | 訊框格式 8N1"
 
+msgid "  Byte mode: {unit} byte(s) per sample"
+msgstr "  位元組模式：每取樣點 {unit} 位元組"
+
 msgid "  Channel   Rising   Falling"
 msgstr "  通道   上升緣   下降緣"
 
+msgid "  Channels: {count} ({names})"
+msgstr "  通道數：{count}（{names}）"
+
 msgid "  Duty           : {duty:.1f} %   ({cycles} cycles averaged)"
 msgstr "  工作週期       ：{duty:.1f} %   （{cycles} 個週期平均）"
-
-msgid "  {ch}: {freq:8.1f} Hz   Duty {duty:5.1f}%"
-msgstr "  {ch}：{freq:8.1f} Hz   工作週期 {duty:5.1f}%"
 
 msgid "  Frequency      : {freq:.1f} Hz"
 msgstr "  頻率            ：{freq:.1f} Hz"
@@ -115,6 +118,9 @@ msgstr "  已接收：（此視窗內未解碼出完整訊框）"
 msgid "  Received: {text}"
 msgstr "  已接收：{text}"
 
+msgid "  Sample rate: {rate} Hz"
+msgstr "  取樣率：{rate} Hz"
+
 msgid "  Signal insufficient"
 msgstr "  訊號不足"
 
@@ -133,8 +139,14 @@ msgstr "  [0] 返回主選單"
 msgid "  [1] Full offline self-test report (no hardware, zero flashing, for acceptance)"
 msgstr "  [1] 完整離線自我測試報告（無需硬體、零燒錄、用於驗收）"
 
+msgid "  [1] Language"
+msgstr "  [1] 語言"
+
 msgid "  [1] Live serial decode (needs hardware)"
 msgstr "  [1] 即時序列解碼（需要硬體）"
+
+msgid "  [2] Device"
+msgstr "  [2] 裝置"
 
 msgid "  [2] Offline demo (built-in test waveform, no hardware)"
 msgstr "  [2] 離線示範（內建測試波形，無需硬體）"
@@ -145,11 +157,20 @@ msgstr "  [2] PPM 多通道延伸檢查"
 msgid "  [3] Export all events to CSV"
 msgstr "  [3] 匯出全部事件到 CSV"
 
+msgid "  [3] Sample rate"
+msgstr "  [3] 取樣率"
+
+msgid "  [4] Capture mode"
+msgstr "  [4] 擷取模式"
+
 msgid "  [4] Pulse statistics and glitch detection"
 msgstr "  [4] 脈寬統計與突波偵測"
 
 msgid "  [5] Dual-waveform diff"
 msgstr "  [5] 雙波形比對"
+
+msgid "  [5] Restore default rate and mode"
+msgstr "  [5] 恢復預設取樣率和模式"
 
 msgid "  [6] HTML waveform browser export"
 msgstr "  [6] HTML 波形瀏覽器匯出"
@@ -163,14 +184,29 @@ msgstr "  高=█  低=_"
 msgid "  transitions {edges}"
 msgstr "  跳變 {edges} 次"
 
+msgid "  {ch}: {freq:8.1f} Hz   Duty {duty:5.1f}%"
+msgstr "  {ch}：{freq:8.1f} Hz   工作週期 {duty:5.1f}%"
+
+msgid " (no imported files)"
+msgstr " （未匯入檔案）"
+
 msgid " (no serial port detected)"
 msgstr " （未偵測到序列埠）"
+
+msgid " Device:"
+msgstr " 裝置："
+
+msgid " Mode:"
+msgstr " 模式："
 
 msgid " Port:"
 msgstr " 序列埠："
 
 msgid " Sample points:"
 msgstr " 取樣點數："
+
+msgid " Sample rate:"
+msgstr " 取樣率："
 
 msgid "(Could not open automatically; double-click the file manually)"
 msgstr "（無法自動開啟；請手動雙擊該檔案）"
@@ -223,14 +259,26 @@ msgstr "5. 訊號產生器"
 msgid "6. Offline tools"
 msgstr "6. 離線工具"
 
-msgid "7. Language"
-msgstr "7. 語言"
+msgid "7. Settings"
+msgstr "7. 設定"
+
+msgid "8. Quick start guide"
+msgstr "8. 快速入門指南"
+
+msgid "===== Available devices ====="
+msgstr "===== 可用裝置 ====="
 
 msgid "===== Available protocol decoders ====="
 msgstr "===== 可用協定解碼器 ====="
 
+msgid "===== Capture mode ====="
+msgstr "===== 擷取模式 ====="
+
 msgid "===== Detected serial ports ====="
 msgstr "===== 已偵測到序列埠 ====="
+
+msgid "===== Device configuration ====="
+msgstr "===== 裝置設定 ====="
 
 msgid "===== HJS-Workbench - Three-in-one live measurement ====="
 msgstr "===== HJS-Workbench - 三合一即時量測 ====="
@@ -241,11 +289,26 @@ msgstr "===== HJS-Workbench - 統一協定分析 ====="
 msgid "===== Offline tools ====="
 msgstr "===== 離線工具 ====="
 
+msgid "===== Sample rate ====="
+msgstr "===== 取樣率 ====="
+
+msgid "===== Settings ====="
+msgstr "===== 設定 ====="
+
 msgid "===== Standalone analyzer terminal (no PulseView needed) ====="
 msgstr "===== 獨立分析終端（無需 PulseView）====="
 
 msgid "A release-notes prompt shows what changed after an update."
 msgstr "新增發行說明提示：更新後展示本次變更內容。"
+
+msgid "Apply"
+msgstr "套用"
+
+msgid "Back"
+msgstr "上一步"
+
+msgid "Burst"
+msgstr "突發脈衝"
 
 msgid "CSV output path (Enter defaults to proto_diff_report.csv): "
 msgstr "CSV 輸出路徑（按 Enter 預設 proto_diff_report.csv）："
@@ -253,8 +316,20 @@ msgstr "CSV 輸出路徑（按 Enter 預設 proto_diff_report.csv）："
 msgid "CSV output path (Enter defaults to proto_stats_report.csv): "
 msgstr "CSV 輸出路徑（按 Enter 預設 proto_stats_report.csv）："
 
+msgid "Cancel"
+msgstr "取消"
+
 msgid "Cannot capture"
 msgstr "無法擷取"
+
+msgid "Cannot change device"
+msgstr "無法更換裝置"
+
+msgid "Cannot connect"
+msgstr "無法連線"
+
+msgid "Cannot open serial port {port}: {error}"
+msgstr "無法開啟序列埠 {port}：{error}"
 
 msgid "Cannot read file {path}: the file has no sample-rate information."
 msgstr "無法讀取檔案 {path}：檔案缺少取樣率資訊。"
@@ -262,11 +337,17 @@ msgstr "無法讀取檔案 {path}：檔案缺少取樣率資訊。"
 msgid "Cannot read file {path}: {error}"
 msgstr "無法讀取檔案 {path}：{error}"
 
+msgid "Cannot save"
+msgstr "無法儲存"
+
+msgid "Cannot set the DTR control line: {error}"
+msgstr "無法設定 DTR 控制線：{error}"
+
+msgid "Cannot set the RTS control line: {error}"
+msgstr "無法設定 RTS 控制線：{error}"
+
 msgid "Capture"
 msgstr "擷取"
-
-msgid "Captured {n} points ({rate} Hz)"
-msgstr "已擷取 {n} 點（{rate} Hz）"
 
 msgid "Capture controls"
 msgstr "擷取控制"
@@ -280,14 +361,29 @@ msgstr "擷取檔案路徑（.sr/.bin），按 Enter 使用解碼器示範波形
 msgid "Capture file path (.sr/.bin): "
 msgstr "擷取檔案路徑（.sr/.bin）："
 
+msgid "Capture mode saved: {mode}"
+msgstr "擷取模式已儲存：{mode}"
+
 msgid "Capture starts in 2 seconds; confirm A15 is connected to D0 ..."
 msgstr "2 秒後開始擷取；請確認 A15 已連接到 D0 ..."
 
 msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the CH32 data port selected (bottom USB-FS port, not the debug port), is A15 looped back to D0, is the port free of other programs; then retry."
 msgstr "擷取逾時：收到 {got} 點，需要 {need} 點。\n請檢查：是否選擇了 CH32 資料連接埠（下方 USB-FS 連接埠，不是除錯連接埠）、A15 是否迴接到 D0、連接埠是否被其他程式占用；然後重試。"
 
+msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
+msgstr "擷取、量測與解碼只能透過資料連接埠運作；只接除錯連接埠的線是不夠的。"
+
+msgid "Captured {n} points ({rate} Hz)"
+msgstr "已擷取 {n} 點（{rate} Hz）"
+
+msgid "Capturing burst from {port}..."
+msgstr "正在從 {port} 擷取突發脈衝..."
+
 msgid "Capturing {n} points from {port} ..."
 msgstr "正在從 {port} 擷取 {n} 點 ..."
+
+msgid "Capturing {points} points from {port}..."
+msgstr "正在擷取 {points} 點，來自 {port}..."
 
 msgid "Channel"
 msgstr "通道"
@@ -295,11 +391,23 @@ msgstr "通道"
 msgid "Channel list (comma-separated, Enter defaults to all): "
 msgstr "通道列表（逗號分隔，按 Enter 預設全部）："
 
+msgid "Channel names do not match the channel count ({names} names, {count} channels)."
+msgstr "通道名稱與通道數不一致（{names} 個名稱，{count} 個通道）。"
+
+msgid "Choose capture mode number (Enter keeps the current mode, q quits): "
+msgstr "選擇擷取模式編號（Enter 保留目前模式，q 退出）："
+
 msgid "Choose decoder number: "
 msgstr "選擇解碼器編號："
 
+msgid "Choose device number (Enter keeps the current device, q quits): "
+msgstr "選擇裝置編號（按 Enter 保持目前裝置，q 結束）："
+
 msgid "Choose mode: "
 msgstr "選擇模式："
+
+msgid "Choose sample rate number (Enter keeps the current rate, q quits): "
+msgstr "選擇取樣率編號（Enter 保留目前取樣率，q 退出）："
 
 msgid "Choose the data port number (Enter rescans, q quits): "
 msgstr "選擇資料埠編號（按 Enter 重新掃描，q 結束）："
@@ -307,11 +415,26 @@ msgstr "選擇資料埠編號（按 Enter 重新掃描，q 結束）："
 msgid "Close"
 msgstr "關閉"
 
+msgid "Connect"
+msgstr "連線"
+
+msgid "Connect the device"
+msgstr "連接裝置"
+
+msgid "Connect the signal port before sending a command."
+msgstr "傳送命令前請先連線訊號連接埠。"
+
 msgid "Connected to {port}"
 msgstr "已連線到 {port}"
 
 msgid "Content"
 msgstr "內容"
+
+msgid "Continuous capture mode in the GUI with a rolling waveform, alongside the existing one-shot capture."
+msgstr "GUI 新增連續擷取模式與滾動波形，與現有單次擷取並存。"
+
+msgid "Continuous capture: use the continuous start/stop controls to stream a rolling window that refreshes the waveform every 100-200 ms; stopping releases the port."
+msgstr "連續擷取：使用連續擷取的開始/停止控制項串流刷新滾動視窗，每 100-200 ms 更新一次波形；停止後釋放連接埠。"
 
 msgid "Created:"
 msgstr "已建立："
@@ -319,8 +442,17 @@ msgstr "已建立："
 msgid "Created: {out}  ({bytes} bytes)"
 msgstr "已建立：{out}（{bytes} 位元組）"
 
-msgid "{ch} details"
-msgstr "{ch} 詳細"
+msgid "Current capture mode: {mode}"
+msgstr "目前擷取模式：{mode}"
+
+msgid "Current device: {name}"
+msgstr "目前裝置：{name}"
+
+msgid "Current sample rate: {rate} Hz"
+msgstr "目前取樣率：{rate} Hz"
+
+msgid "Dark"
+msgstr "深色"
 
 msgid "Decode"
 msgstr "解碼"
@@ -337,14 +469,29 @@ msgstr "已解碼 {n} 個事件"
 msgid "Decoder:"
 msgstr "解碼器："
 
+msgid "Defaults restored: sample rate {rate} Hz, capture mode {mode}."
+msgstr "已恢復預設值：取樣率 {rate} Hz，擷取模式 {mode}。"
+
+msgid "Device selected: {name}"
+msgstr "已選擇裝置：{name}"
+
 msgid "Different lengths: comparing only the overlapping {n} points"
 msgstr "長度不同：僅比較重疊的 {n} 點"
+
+msgid "Disconnect"
+msgstr "中斷連線"
 
 msgid "Dual-waveform diff report (A=reference, B=device under test)"
 msgstr "雙波形比對報告（A=參考，B=待測裝置）"
 
 msgid "Duty"
 msgstr "工作週期"
+
+msgid "Duty cycle"
+msgstr "工作週期"
+
+msgid "Duty cycle must be between {min} and {max} percent."
+msgstr "工作週期必須介於 {min} 到 {max} 百分比之間。"
 
 msgid "Enter a frequency (1-5000) for a square wave; u = switch to UART; q = quit\n"
 msgstr "輸入頻率（1-5000）輸出方波；u = 切換到 UART；q = 結束\n"
@@ -361,20 +508,68 @@ msgstr "已結束。"
 msgid "Exported: {path}"
 msgstr "已匯出：{path}"
 
+msgid "Extended firmware signal generator: PWM, burst, and forced high/low commands, driven from the new GUI signal panel."
+msgstr "擴充韌體訊號產生器：PWM、突發脈衝與強制高/低電位命令，由新的 GUI 訊號面板驅動。"
+
 msgid "Failed to open the serial port (close the serial monitor and retry): {error}"
 msgstr "開啟序列埠失敗（請關閉序列埠監視器後重試）：{error}"
+
+msgid "File already imported: {path}"
+msgstr "檔案已匯入：{path}"
+
+msgid "Finish"
+msgstr "完成"
 
 msgid "First-run language picker in the GUI and the CLI."
 msgstr "GUI 與 CLI 首次執行時顯示語言選擇器。"
 
+msgid "First-run onboarding wizard and a re-openable Quick Start Guide in the GUI and the CLI."
+msgstr "首次執行引導精靈，以及可在 GUI 與 CLI 中重新開啟的快速入門指南。"
+
+msgid "Fit"
+msgstr "顯示全部"
+
+msgid "Fit to all data"
+msgstr "顯示全部資料"
+
+msgid "Force high"
+msgstr "強制高電位"
+
+msgid "Force low"
+msgstr "強制低電位"
+
+msgid "French and German language packs: five languages with runtime switching."
+msgstr "法語與德語語言包：支援五種語言，可於執行中切換。"
+
 msgid "Frequency"
 msgstr "頻率"
+
+msgid "Frequency is limited to 1-5000 Hz and duty to 1-99 percent; keep the inputs inside these limits."
+msgstr "頻率限制在 1-5000 Hz，工作週期限制在 1-99%；請將輸入保持在此範圍內。"
+
+msgid "Frequency must be between {min} and {max} Hz."
+msgstr "頻率必須介於 {min} 到 {max} Hz 之間。"
 
 msgid "Full protocol self-test report (fully offline - zero flashing - repeatable acceptance)"
 msgstr "完整協定自我測試報告（完全離線 - 零燒錄 - 可重複驗收）"
 
 msgid "Glitch threshold us (Enter defaults to 200): "
 msgstr "突波門檻 us（按 Enter 預設 200）："
+
+msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
+msgstr "硬體抽象層：所有真實開發板都透過統一的裝置後端介面工作。"
+
+msgid "Import"
+msgstr "匯入"
+
+msgid "Import capture files"
+msgstr "匯入擷取檔案"
+
+msgid "Imported {n} file(s)"
+msgstr "已匯入 {n} 個檔案"
+
+msgid "In the GUI use the port list and refresh it; in the CLI choose the capture entry or the signal generator and pick the port number from the detected list."
+msgstr "在 GUI 中使用連接埠清單並重新整理；在 CLI 中選擇擷取功能或訊號產生器，並從偵測到的清單中挑選連接埠編號。"
 
 msgid "Internationalization: English, Simplified Chinese, Traditional Chinese."
 msgstr "國際化：英語、簡體中文、繁體中文。"
@@ -385,17 +580,50 @@ msgstr "通道列表無效，使用全部通道"
 msgid "Invalid choice"
 msgstr "無效選擇"
 
+msgid "Invalid duty cycle"
+msgstr "無效的工作週期"
+
+msgid "Invalid frequency"
+msgstr "無效的頻率"
+
 msgid "Invalid number"
 msgstr "無效編號"
+
+msgid "Invalid pulse count"
+msgstr "無效的脈衝數"
 
 msgid "Language changed."
 msgstr "語言已變更。"
 
+msgid "Language:"
+msgstr "語言："
+
+msgid "Light"
+msgstr "淺色"
+
+msgid "Live analysis, live measurement, and the GUI continuous capture follow the selected sample rate."
+msgstr "即時分析、即時量測和圖形介面的連續擷取遵循所選取樣率。"
+
+msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
+msgstr "用跳線把 A15 環回接到 D0，即可擷取並解碼產生的訊號。"
+
+msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
+msgstr "連線前請確認沒有其他程式（序列埠監視器、另一個擷取程序）占用該連接埠。"
+
 msgid "Measure"
 msgstr "量測"
 
+msgid "Mode"
+msgstr "模式"
+
 msgid "Most common bytes:"
 msgstr "最常見位元組："
+
+msgid "New device configuration entry in the CLI and the GUI."
+msgstr "CLI 與 GUI 新增裝置設定入口。"
+
+msgid "Next"
+msgstr "下一步"
 
 msgid "Nine protocol decoders, measurement, and .sr/.bin file support."
 msgstr "九種協定解碼器、量測功能與 .sr/.bin 檔案支援。"
@@ -412,11 +640,26 @@ msgstr "未找到序列埠，請檢查 USB 連線"
 msgid "No usable serial port detected. Connect the device data port, then click Refresh ports."
 msgstr "未偵測到可用序列埠。請連接裝置資料連接埠，然後按一下重新整理連接埠。"
 
+msgid "No usable serial port detected. Connect the device, then click Refresh ports."
+msgstr "未偵測到可用的序列埠。請連接裝置，然後點選重新整理連接埠。"
+
+msgid "Not connected"
+msgstr "未連線"
+
 msgid "Not enough data."
 msgstr "資料不足。"
 
 msgid "Note: the in-frame channel gaps are recognized as PPM and not misreported as SERVO (gaps != 20 ms)."
 msgstr "說明：訊框內的通道間隔被辨識為 PPM，不會誤報為 SERVO（間隔 != 20 ms）。"
+
+msgid "OK"
+msgstr "確定"
+
+msgid "One-shot and continuous capture share the data port and cannot run at the same time."
+msgstr "單次擷取與連續擷取共用資料連接埠，不能同時執行。"
+
+msgid "One-shot capture: choose the sample point count and start the capture; the waveform appears when the transfer completes."
+msgstr "單次擷取：選擇取樣點數並開始擷取；傳輸完成後波形即顯示出來。"
 
 msgid "Open capture file"
 msgstr "開啟擷取檔案"
@@ -436,17 +679,38 @@ msgstr "輸出檔案（按 Enter 預設 proto_wave.html）："
 msgid "Overlay decoder name (Enter to skip): "
 msgstr "疊加解碼器名稱（按 Enter 略過）："
 
+msgid "PWM"
+msgstr "PWM"
+
+msgid "Plug the board into a USB port and check the two USB connectors on the board."
+msgstr "將開發板插入 USB 連接埠，並查看板上的兩個 USB 連接器。"
+
 msgid "Press Enter to continue"
 msgstr "按 Enter 繼續"
 
+msgid "Pulse count"
+msgstr "脈衝數"
+
+msgid "Pulse count must be between {min} and {max}."
+msgstr "脈衝數必須介於 {min} 到 {max} 之間。"
+
 msgid "Pulse statistics and glitch detection  |  {src}"
 msgstr "脈寬統計與突波偵測  |  {src}"
+
+msgid "Quick Start Guide"
+msgstr "快速入門指南"
+
+msgid "Quick start"
+msgstr "快速入門"
 
 msgid "Read failed:"
 msgstr "讀取失敗："
 
 msgid "Reading file..."
 msgstr "正在讀取檔案..."
+
+msgid "Realtime"
+msgstr "即時"
 
 msgid "Ready"
 msgstr "就緒"
@@ -460,6 +724,18 @@ msgstr "參考波形 A 路徑（.sr/.bin）："
 msgid "Refresh ports"
 msgstr "重新整理連接埠"
 
+msgid "Remove"
+msgstr "移除"
+
+msgid "Removed from the import list: {path}"
+msgstr "已從匯入清單移除：{path}"
+
+msgid "Restore defaults"
+msgstr "恢復預設值"
+
+msgid "Restored default sample rate and capture mode"
+msgstr "已恢復預設取樣率和擷取模式"
+
 msgid "Run decode"
 msgstr "執行解碼"
 
@@ -469,8 +745,14 @@ msgstr "執行時可切換語言，無需重新啟動。"
 msgid "Sample rate (.bin only, Enter for auto): "
 msgstr "取樣率（僅 .bin，按 Enter 自動）："
 
+msgid "Sample rate: {rate} Hz, capture mode: {mode}"
+msgstr "取樣率：{rate} Hz，擷取模式：{mode}"
+
 msgid "Sample rate in Hz (Enter defaults to {rate}): "
 msgstr "取樣率 Hz（按 Enter 預設 {rate}）："
+
+msgid "Sample rate saved: {rate} Hz"
+msgstr "取樣率已儲存：{rate} Hz"
 
 msgid "Sample rate {rate} Hz - {n} points ({ms:.1f} ms) - glitch threshold {us:.0f}us"
 msgstr "取樣率 {rate} Hz - {n} 點（{ms:.1f} ms）- 突波門檻 {us:.0f}us"
@@ -481,203 +763,17 @@ msgstr "取樣率 {rate} Hz - {n} 點 - 時長 {ms:.1f} ms"
 msgid "Sample rate: {rate} Hz   Window: {n} points\n"
 msgstr "取樣率：{rate} Hz   視窗：{n} 點\n"
 
+msgid "Sample-rate and capture-mode selectors in the GUI toolbar and the CLI settings menu, always driven by the current backend capabilities."
+msgstr "圖形介面工具列和命令列設定選單中的取樣率與擷取模式選擇器，始終由目前後端能力驅動。"
+
+msgid "Saved rate and mode choices are validated before every capture and fall back to the backend defaults when unsupported or stale."
+msgstr "儲存的取樣率和模式選擇會在每次擷取前驗證，不受支援或過期時回退到後端預設值。"
+
+msgid "Select the port"
+msgstr "選擇連接埠"
+
 msgid "Select: "
 msgstr "選擇："
-
-msgid "Time"
-msgstr "時間"
-
-msgid "Time(ms)"
-msgstr "時間(ms)"
-
-msgid "Type"
-msgstr "類型"
-
-msgid "UART text ({ch}, 8N1)"
-msgstr "UART 文字（{ch}，8N1）"
-
-msgid "Unified CLI and GUI packages built on the shared core."
-msgstr "基於共用核心建構統一的 CLI 與 GUI 套件。"
-
-msgid "Unknown decoder:"
-msgstr "未知解碼器："
-
-msgid "Unsupported file type: {ext}. Please choose a .sr or .bin file."
-msgstr "不支援的檔案類型：{ext}。請選擇 .sr 或 .bin 檔案。"
-
-msgid "Version {version}"
-msgstr "版本 {version}"
-
-msgid "Waveform B under test path (.sr/.bin): "
-msgstr "待測波形 B 路徑（.sr/.bin）："
-
-msgid "Waiting for the background capture to finish..."
-msgstr "正在等待背景擷取結束..."
-
-msgid "What's new"
-msgstr "更新內容"
-
-msgid "available:"
-msgstr "可用："
-
-msgid "duty~{duty:.1f}%"
-msgstr "工作週期~{duty:.1f}%"
-
-msgid "freq~{freq:.1f} Hz"
-msgstr "頻率~{freq:.1f} Hz"
-
-msgid "insufficient signal"
-msgstr "訊號不足"
-
-msgid "{type} (no details)"
-msgstr "{type}（無詳細資訊）"
-msgid "8. Device"
-msgstr "8. 裝置"
-
-msgid "===== Device configuration ====="
-msgstr "===== 裝置設定 ====="
-
-msgid "Current device: {name}"
-msgstr "目前裝置：{name}"
-
-msgid "  Channels: {count} ({names})"
-msgstr "  通道數：{count}（{names}）"
-
-msgid "  Byte mode: {unit} byte(s) per sample"
-msgstr "  位元組模式：每取樣點 {unit} 位元組"
-
-msgid "  Sample rate: {rate} Hz"
-msgstr "  取樣率：{rate} Hz"
-
-msgid "===== Available devices ====="
-msgstr "===== 可用裝置 ====="
-
-msgid "Choose device number (Enter keeps the current device, q quits): "
-msgstr "選擇裝置編號（按 Enter 保持目前裝置，q 結束）："
-
-msgid "Device selected: {name}"
-msgstr "已選擇裝置：{name}"
-
-msgid " Device:"
-msgstr " 裝置："
-
-msgid "{name} - {count} channels, {unit} byte(s)/sample, {rate} Hz"
-msgstr "{name} - {count} 通道，每取樣點 {unit} 位元組，{rate} Hz"
-
-msgid "Cannot open serial port {port}: {error}"
-msgstr "無法開啟序列埠 {port}：{error}"
-
-msgid "Cannot set the DTR control line: {error}"
-msgstr "無法設定 DTR 控制線：{error}"
-
-msgid "Cannot set the RTS control line: {error}"
-msgstr "無法設定 RTS 控制線：{error}"
-
-msgid "Unsupported sample rate {rate} Hz for the {name} backend; supported rates: {rates} Hz"
-msgstr "裝置 {name} 不支援取樣率 {rate} Hz；支援的取樣率：{rates} Hz"
-
-msgid "Unsupported byte mode {unit} byte(s) per sample for the {name} backend; supported byte modes: {units}"
-msgstr "裝置 {name} 不支援每取樣點 {unit} 位元組的位元組模式；支援的位元組模式：{units}"
-
-msgid "Unsupported channel count {count} for the {name} backend; supported channel count: {supported}"
-msgstr "裝置 {name} 不支援 {count} 個通道；支援的通道數：{supported}"
-
-msgid "Unknown device backend: {id}. Available backends: {ids}"
-msgstr "未知裝置後端：{id}。可用後端：{ids}"
-
-msgid "Channel names do not match the channel count ({names} names, {count} channels)."
-msgstr "通道名稱與通道數不一致（{names} 個名稱，{count} 個通道）。"
-
-msgid "Unsupported channel names for the {name} backend: {names}"
-msgstr "裝置 {name} 不支援通道名稱：{names}"
-
-msgid "Cannot change device"
-msgstr "無法更換裝置"
-
-msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
-msgstr "硬體抽象層：所有真實開發板都透過統一的裝置後端介面工作。"
-
-msgid "The CH32 board is the first backend; baud rates, channel count, byte mode, sample rate, and troubleshooting text all come from its declared capabilities."
-msgstr "CH32 開發板是第一個後端；鮑率、通道數、位元組模式、取樣率與排查提示都來自其宣告的能力。"
-
-msgid "New device configuration entry in the CLI and the GUI."
-msgstr "CLI 與 GUI 新增裝置設定入口。"
-
-
-msgid "9. Quick start guide"
-msgstr "9. 快速入門指南"
-
-msgid "Back"
-msgstr "上一步"
-
-msgid "Burst"
-msgstr "突發脈衝"
-
-msgid "Cannot connect"
-msgstr "無法連線"
-
-msgid "Connect"
-msgstr "連線"
-
-msgid "Connect the signal port before sending a command."
-msgstr "傳送命令前請先連線訊號連接埠。"
-
-msgid "Disconnect"
-msgstr "中斷連線"
-
-msgid "Duty cycle"
-msgstr "工作週期"
-
-msgid "Duty cycle must be between {min} and {max} percent."
-msgstr "工作週期必須介於 {min} 到 {max} 百分比之間。"
-
-msgid "Finish"
-msgstr "完成"
-
-msgid "Force high"
-msgstr "強制高電位"
-
-msgid "Force low"
-msgstr "強制低電位"
-
-msgid "Frequency must be between {min} and {max} Hz."
-msgstr "頻率必須介於 {min} 到 {max} Hz 之間。"
-
-msgid "Invalid duty cycle"
-msgstr "無效的工作週期"
-
-msgid "Invalid frequency"
-msgstr "無效的頻率"
-
-msgid "Invalid pulse count"
-msgstr "無效的脈衝數"
-
-msgid "Mode"
-msgstr "模式"
-
-msgid "Next"
-msgstr "下一步"
-
-msgid "No usable serial port detected. Connect the device, then click Refresh ports."
-msgstr "未偵測到可用的序列埠。請連接裝置，然後點選重新整理連接埠。"
-
-msgid "Not connected"
-msgstr "未連線"
-
-msgid "PWM"
-msgstr "PWM"
-
-msgid "Pulse count"
-msgstr "脈衝數"
-
-msgid "Pulse count must be between {min} and {max}."
-msgstr "脈衝數必須介於 {min} 到 {max} 之間。"
-
-msgid "Quick Start Guide"
-msgstr "快速入門指南"
-
-msgid "Quick start"
-msgstr "快速入門"
 
 msgid "Send"
 msgstr "傳送"
@@ -685,8 +781,20 @@ msgstr "傳送"
 msgid "Send failed"
 msgstr "傳送失敗"
 
+msgid "Sent: {line}"
+msgstr "已傳送：{line}"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Settings dialog for language and theme, with a reorganized toolbar."
+msgstr "新增語言與主題設定對話方塊，工具列重新分組。"
+
 msgid "Signal"
 msgstr "訊號"
+
+msgid "Signal generator"
+msgstr "訊號產生器"
 
 msgid "Skip"
 msgstr "略過"
@@ -709,50 +817,26 @@ msgstr "第 {number} 步：{title}"
 msgid "Stop"
 msgstr "停止"
 
-msgid "Welcome to HJS-Workbench"
-msgstr "歡迎使用 HJS-Workbench"
+msgid "Stopping continuous capture..."
+msgstr "正在停止連續擷取..."
 
-msgid "Connect the device"
-msgstr "連接裝置"
+msgid "Streaming from {port}..."
+msgstr "正在從 {port} 連續擷取..."
 
-msgid "Select the port"
-msgstr "選擇連接埠"
+msgid "Streaming {n} points"
+msgstr "連續擷取中：{n} 點"
 
-msgid "Waveform, decode, and measurement"
-msgstr "波形、解碼與量測"
+msgid "Ten new protocol decoders: DHT11, 1-Wire, SWD, Modbus RTU, Wiegand, HD44780, Sony SIRC, DS1302, Manchester, and NMEA 0183."
+msgstr "新增十種協定解碼器：DHT11、1-Wire、SWD、Modbus RTU、Wiegand、HD44780、Sony SIRC、DS1302、Manchester 與 NMEA 0183。"
 
-msgid "Signal generator"
-msgstr "訊號產生器"
-
-msgid "Plug the board into a USB port and check the two USB connectors on the board."
-msgstr "將開發板插入 USB 連接埠，並查看板上的兩個 USB 連接器。"
+msgid "The CH32 board is the first backend; baud rates, channel count, byte mode, sample rate, and troubleshooting text all come from its declared capabilities."
+msgstr "CH32 開發板是第一個後端；鮑率、通道數、位元組模式、取樣率與排查提示都來自其宣告的能力。"
 
 msgid "The data port (USB-FS) carries the capture stream; the debug port belongs to the WCH-Link debugger and is only for flashing and debugging."
 msgstr "資料連接埠（USB-FS）承載擷取資料流；除錯連接埠屬於 WCH-Link 除錯器，僅用於燒錄與除錯。"
 
-msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
-msgstr "擷取、量測與解碼只能透過資料連接埠運作；只接除錯連接埠的線是不夠的。"
-
-msgid "In the GUI use the port list and refresh it; in the CLI choose the capture entry or the signal generator and pick the port number from the detected list."
-msgstr "在 GUI 中使用連接埠清單並重新整理；在 CLI 中選擇擷取功能或訊號產生器，並從偵測到的清單中挑選連接埠編號。"
-
 msgid "The data port appears as a new serial port when the cable is connected; if no port appears, check the cable and the USB driver."
 msgstr "接上線纜後，資料連接埠會顯示為一個新的序列埠；如果沒有出現連接埠，請檢查線纜與 USB 驅動程式。"
-
-msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
-msgstr "連線前請確認沒有其他程式（序列埠監視器、另一個擷取程序）占用該連接埠。"
-
-msgid "One-shot capture: choose the sample point count and start the capture; the waveform appears when the transfer completes."
-msgstr "單次擷取：選擇取樣點數並開始擷取；傳輸完成後波形即顯示出來。"
-
-msgid "Continuous capture: use the continuous start/stop controls to stream a rolling window that refreshes the waveform every 100-200 ms; stopping releases the port."
-msgstr "連續擷取：使用連續擷取的開始/停止控制項串流刷新滾動視窗，每 100-200 ms 更新一次波形；停止後釋放連接埠。"
-
-msgid "One-shot and continuous capture share the data port and cannot run at the same time."
-msgstr "單次擷取與連續擷取共用資料連接埠，不能同時執行。"
-
-msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz for the CH32 board)."
-msgstr "波形以裝置端取樣率（CH32 開發板為 10 kHz）顯示 D0-D7 通道。"
 
 msgid "The decode tab lists the registered protocol decoders; pick one and run it on the captured data."
 msgstr "解碼分頁列出了已註冊的協定解碼器；挑選一個並對擷取到的資料進行解碼。"
@@ -763,32 +847,104 @@ msgstr "量測分頁報告每個通道的頻率、週期、脈寬、工作週期
 msgid "The signal-generator tab drives the real firmware output on PA15 over the signal connection: software UART, square wave, PWM (frequency and duty), burst (frequency and pulse count), and forced high/low."
 msgstr "訊號產生器分頁透過訊號連線驅動 PA15 上的真實韌體輸出：軟體 UART、方波、PWM（頻率與工作週期）、突發脈衝（頻率與脈衝數）以及強制高/低電位。"
 
-msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
-msgstr "用跳線把 A15 環回接到 D0，即可擷取並解碼產生的訊號。"
+msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz by default on the CH32 board, up to 1 MHz on the High-Speed port)."
+msgstr "波形以裝置端取樣率（CH32 開發板預設 10 kHz，高速埠最高 1 MHz）顯示 D0-D7 通道。"
 
-msgid "Frequency is limited to 1-5000 Hz and duty to 1-99 percent; keep the inputs inside these limits."
-msgstr "頻率限制在 1-5000 Hz，工作週期限制在 1-99%；請將輸入保持在此範圍內。"
+msgid "Theme:"
+msgstr "主題："
 
-msgid "Ten new protocol decoders: DHT11, 1-Wire, SWD, Modbus RTU, Wiegand, HD44780, Sony SIRC, DS1302, Manchester, and NMEA 0183."
-msgstr "新增十種協定解碼器：DHT11、1-Wire、SWD、Modbus RTU、Wiegand、HD44780、Sony SIRC、DS1302、Manchester 與 NMEA 0183。"
+msgid "Time"
+msgstr "時間"
 
-msgid "Continuous capture mode in the GUI with a rolling waveform, alongside the existing one-shot capture."
-msgstr "GUI 新增連續擷取模式與滾動波形，與現有單次擷取並存。"
+msgid "Time(ms)"
+msgstr "時間(ms)"
 
-msgid "Extended firmware signal generator: PWM, burst, and forced high/low commands, driven from the new GUI signal panel."
-msgstr "擴充韌體訊號產生器：PWM、突發脈衝與強制高/低電位命令，由新的 GUI 訊號面板驅動。"
+msgid "Type"
+msgstr "類型"
 
-msgid "First-run onboarding wizard and a re-openable Quick Start Guide in the GUI and the CLI."
-msgstr "首次執行引導精靈，以及可在 GUI 與 CLI 中重新開啟的快速入門指南。"
+msgid "UART text ({ch}, 8N1)"
+msgstr "UART 文字（{ch}，8N1）"
 
-msgid "Streaming from {port}..."
-msgstr "正在從 {port} 連續擷取..."
+msgid "Unified CLI and GUI packages built on the shared core."
+msgstr "基於共用核心建構統一的 CLI 與 GUI 套件。"
 
-msgid "Stopping continuous capture..."
-msgstr "正在停止連續擷取..."
+msgid "Unknown decoder:"
+msgstr "未知解碼器："
 
-msgid "Streaming {n} points"
-msgstr "連續擷取中：{n} 點"
+msgid "Unknown device backend: {id}. Available backends: {ids}"
+msgstr "未知裝置後端：{id}。可用後端：{ids}"
 
-msgid "Sent: {line}"
-msgstr "已傳送：{line}"
+msgid "Unsupported byte mode {unit} byte(s) per sample for the {name} backend; supported byte modes: {units}"
+msgstr "裝置 {name} 不支援每取樣點 {unit} 位元組的位元組模式；支援的位元組模式：{units}"
+
+msgid "Unsupported capture mode {mode} for the {name} backend; supported modes: {modes}"
+msgstr "裝置 {name} 不支援擷取模式 {mode}；支援的模式：{modes}"
+
+msgid "Unsupported channel count {count} for the {name} backend; supported channel count: {supported}"
+msgstr "裝置 {name} 不支援 {count} 個通道；支援的通道數：{supported}"
+
+msgid "Unsupported channel names for the {name} backend: {names}"
+msgstr "裝置 {name} 不支援通道名稱：{names}"
+
+msgid "Unsupported file type: {ext}. Please choose a .sr or .bin file."
+msgstr "不支援的檔案類型：{ext}。請選擇 .sr 或 .bin 檔案。"
+
+msgid "Unsupported sample rate {rate} Hz for the {name} backend; supported rates: {rates} Hz"
+msgstr "裝置 {name} 不支援取樣率 {rate} Hz；支援的取樣率：{rates} Hz"
+
+msgid "Version {version}"
+msgstr "版本 {version}"
+
+msgid "Waiting for the background capture to finish..."
+msgstr "正在等待背景擷取結束..."
+
+msgid "Waveform B under test path (.sr/.bin): "
+msgstr "待測波形 B 路徑（.sr/.bin）："
+
+msgid "Waveform zoom controls and multi-file import management."
+msgstr "波形縮放控制與多檔案匯入管理。"
+
+msgid "Waveform, decode, and measurement"
+msgstr "波形、解碼與量測"
+
+msgid "Welcome to HJS-Workbench"
+msgstr "歡迎使用 HJS-Workbench"
+
+msgid "What's new"
+msgstr "更新內容"
+
+msgid "Windows Setup installer and a cross-platform CLI install script."
+msgstr "Windows 安裝程式與跨平台 CLI 安裝腳本。"
+
+msgid "Zoom in"
+msgstr "放大"
+
+msgid "Zoom in on the time axis"
+msgstr "放大時間軸"
+
+msgid "Zoom out"
+msgstr "縮小"
+
+msgid "Zoom out on the time axis"
+msgstr "縮小時間軸"
+
+msgid "available:"
+msgstr "可用："
+
+msgid "duty~{duty:.1f}%"
+msgstr "工作週期~{duty:.1f}%"
+
+msgid "freq~{freq:.1f} Hz"
+msgstr "頻率~{freq:.1f} Hz"
+
+msgid "insufficient signal"
+msgstr "訊號不足"
+
+msgid "{ch} details"
+msgstr "{ch} 詳細"
+
+msgid "{name} - {count} channels, {unit} byte(s)/sample, {rate} Hz"
+msgstr "{name} - {count} 通道，每取樣點 {unit} 位元組，{rate} Hz"
+
+msgid "{type} (no details)"
+msgstr "{type}（無詳細資訊）"

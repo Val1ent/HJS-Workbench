@@ -16,8 +16,6 @@
 /*******************************************************************************/
 /* Variable Definition */
 /* Global */
-void TIM2_IRQHandler( void )__attribute__((interrupt("WCH-Interrupt-fast")));
-
 
 /* The following are serial port transmit and receive related variables and buffers */
 volatile UART_CTL Uart;
@@ -40,41 +38,6 @@ uint8_t RCC_Configuration( void )
     RCC_HB1PeriphClockCmd( RCC_HB1Periph_USART4 | RCC_HB1Periph_TIM2, ENABLE );
     RCC_HBPeriphClockCmd( RCC_HBPeriph_DMA1, ENABLE );
     return 0;
-}
-
-/*********************************************************************
- * @fn      TIM2_Init
- *
- * @brief   100us Timer
- *          144 * 100 * 13.8888 -----> 100uS
- *
- * @return  none
- */
-void TIM2_Init( void )
-{
-    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure = {0};
-
-    TIM_DeInit( TIM2 );
-
-    /* Time base configuration: 10 kHz sampling rate (stable build)
-       PSC divides 100 MHz down to 1 MHz (1us/tick), Period=100 -> 10 kHz */
-    TIM_TimeBaseStructure.TIM_Period = 100 - 1;
-    TIM_TimeBaseStructure.TIM_Prescaler = SystemCoreClock / 1000000 - 1;
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit( TIM2, &TIM_TimeBaseStructure );
-
-    /* Clear TIM2 update pending flag */
-    TIM_ClearFlag( TIM2, TIM_FLAG_Update );
-
-    /* TIM IT enable */
-    TIM_ITConfig( TIM2, TIM_IT_Update, ENABLE );
-
-    /* Enable Interrupt */
-    NVIC_EnableIRQ( TIM2_IRQn );
-
-    /* TIM2 enable counter */
-    TIM_Cmd( TIM2, ENABLE );
 }
 
 /*********************************************************************
@@ -534,28 +497,4 @@ void UART_DataRx_Deal( void )
             }
         }
     }
-}
-
-
-/*********************************************************************
- * @fn      TIM2_IRQHandler
- *
- * @brief   This function handles TIM2 exception.
- *
- * @return  none
- */
-void TIM2_IRQHandler( void )
-{
-    /* uart timeout counts */
-    Uart.Rx_TimeOut++;
-    Uart.USB_Up_TimeOut++;
-
-    /* Store the sample in the ring buffer (sample first, then drive the signal) */
-    Capture_Tick();
-
-    /* Drive the self-test UART transmission */
-    Signal_Tick();
-
-    /* clear status */
-    TIM2->INTFR = (uint16_t)~TIM_IT_Update;
 }

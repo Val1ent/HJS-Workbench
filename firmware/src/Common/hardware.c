@@ -1,20 +1,14 @@
 /********************************** (C) COPYRIGHT  *******************************
-* Logic analyzer: GPIO sampling runs inside the TIM2 interrupt (ring buffer); the main loop only sends over USB
-* This way sampling is never interrupted and no points are lost while a USB send blocks; the time axis stays accurate
+* Logic analyzer: TIM2 hardware-triggered DMA1_Channel1 moves the GPIOD input
+* register byte into RAM with no CPU involvement (see dma_capture.c); the main
+* loop only sends full blocks over USB, the time axis stays accurate
 * Self-test signal source: software-emulated UART, PA15 plain push-pull, 1000 bps, A15->D0
 * Add a UART decoder (1000-8N1) in PulseView to decode "Hello CH32!"
 *******************************************************************************/
 #include "hardware.h"
+#ifndef HS_BUILD
 #include "ch32h417_usbfs_device.h"
-
-#define BATCH_POINTS 1000
-static uint8_t batch_buf[BATCH_POINTS];
-
-/* ===== Capture ring buffer (written in ISR / read in main loop) ===== */
-#define RING_SIZE 2048   /* must be a power of two; holds samples while a USB send blocks (task-5 clean value) */
-static uint8_t  cap_ring[RING_SIZE];
-static volatile uint16_t ring_head = 0;
-static volatile uint16_t ring_tail = 0;
+#endif
 
 /* ===== Software UART signal source (PA15 / 1000 bps) ===== */
 static const char sig_msg[] = "Hello CH32!\r\n";
@@ -55,6 +49,9 @@ __attribute__((aligned(4))) uint8_t cmd_dma_buf[64];   /* endpoint 2 DMA landing
 static char cmd_line[32];
 static uint8_t cmd_len = 0;
 
+/* Full-Speed only: send a block over the USBFS EP3 IN endpoint. The
+   High-Speed build streams through USBHS_SendStream instead. */
+#ifndef HS_BUILD
 static void USB_SendBuf(const uint8_t *data, uint16_t len)
 {
     uint16_t off = 0;
@@ -70,9 +67,11 @@ static void USB_SendBuf(const uint8_t *data, uint16_t len)
         off += chunk;
     }
 }
+#endif
 
-/* Capture pins PD0-7: pull-up inputs */
-static void Capture_GPIO_Init(void)
+/* Capture pins PD0-7: pull-up inputs. Shared by the Full-Speed and
+   High-Speed main loops, timing untouched. */
+void Capture_GPIO_Init(void)
 {
     GPIO_InitTypeDef g = {0};
     RCC_HB2PeriphClockCmd(RCC_HB2Periph_GPIOD, ENABLE);
@@ -82,8 +81,9 @@ static void Capture_GPIO_Init(void)
     GPIO_Init(GPIOD, &g);
 }
 
-/* Software UART pin: PA15 plain push-pull output; PC6 diagnostic output */
-static void Signal_Init(void)
+/* Software UART pin: PA15 plain push-pull output; PC6 diagnostic output.
+   Shared by the Full-Speed and High-Speed main loops, timing untouched. */
+void Signal_Init(void)
 {
     GPIO_InitTypeDef g = {0};
 
@@ -220,17 +220,6 @@ void Signal_Tick(void)
     }
 }
 
-/* Called by the TIM2 interrupt every 100us: store a sample in the ring buffer */
-void Capture_Tick(void)
-{
-    uint16_t next = (ring_head + 1) & (RING_SIZE - 1);
-    if(next != ring_tail)   /* buffer not full */
-    {
-        cap_ring[ring_head] = (uint8_t)(GPIOD->INDR & 0x00FF);
-        ring_head = next;
-    }
-}
-
 /* Endpoint 2 received a packet (called in the USB ISR): process char by char immediately */
 int Signal_HandleRx(const uint8_t *data, uint16_t len)
 {
@@ -306,25 +295,43 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
             last_cmd = 3;
             ret = 3;
         }
+        else if(c == 'R' || c == 'r')
+        {
+            /* R starts collecting a rate command; the rate is applied at the newline */
+            cmd_len = 0;
+            cmd_line[cmd_len++] = 'R';
+            ret = 5;
+        }
         else if((c >= '0' && c <= '9') || c == ',')
         {
-            if(cmd_len > 0 && (cmd_line[0] == 'S' || cmd_line[0] == 'P' || cmd_line[0] == 'B')
+            if(cmd_len > 0 && (cmd_line[0] == 'S' || cmd_line[0] == 'P' || cmd_line[0] == 'B' || cmd_line[0] == 'R')
                && cmd_len < sizeof(cmd_line) - 1)
                 cmd_line[cmd_len++] = c;
         }
         else if(c == '\r' || c == '\n')
         {
-            /* S/P/B command newline: parse and apply the full command */
+            /* S/P/B/R command newline: parse and apply the full command */
             if(cmd_len > 0)
             {
-                int r;
                 cmd_line[cmd_len] = 0;
-                r = Cmd_Parse(cmd_line);
-                if(r >= 0)
+                if(cmd_line[0] == 'R' || cmd_line[0] == 'r')
                 {
-                    sig_mode = (uint8_t)r;
-                    last_cmd = (uint8_t)r;
-                    ret = r;
+                    /* R<rate>: 10000 / 100000 / 500000 / 1000000 only */
+                    uint32_t r = 0;
+                    const char *p = cmd_line + 1;
+                    while(*p >= '0' && *p <= '9') { r = r * 10 + (uint32_t)(*p - '0'); p++; }
+                    if(Capture_SetRate(r) == 0) ret = 5;
+                    else ret = -1;
+                }
+                else
+                {
+                    int r = Cmd_Parse(cmd_line);
+                    if(r >= 0)
+                    {
+                        sig_mode = (uint8_t)r;
+                        last_cmd = (uint8_t)r;
+                        ret = r;
+                    }
                 }
                 cmd_len = 0;
             }
@@ -424,16 +431,42 @@ int Cmd_Parse(const char *line)
     return -1;
 }
 
+/* Report capture diagnostics on the debug UART when a counter changes; the
+   sample stream on endpoint 3 stays pure data. Shared by both main loops. */
+void Capture_Diag_Report(void)
+{
+    static uint32_t rep_ovf = 0;
+    static uint32_t rep_te = 0;
+    static uint32_t rep_rej = 0;
+    static uint32_t rep_rate = 0;
+    static uint32_t rep_cmd = 0;
+    uint32_t v;
+
+    v = Capture_OverflowCount();
+    if(v != rep_ovf) { rep_ovf = v; printf("CAP OVF:%lu\n", v); }
+    v = Capture_ErrorCount();
+    if(v != rep_te) { rep_te = v; printf("CAP TE:%lu\n", v); }
+    v = Capture_RejectCount();
+    if(v != rep_rej) { rep_rej = v; printf("CAP RREJ:%lu\n", v); }
+    v = Capture_CurrentRate();
+    if(v != rep_rate) { rep_rate = v; printf("CAP RATE:%lu\n", v); }
+    v = last_cmd;
+    if(v != rep_cmd) { rep_cmd = v; printf("CAP CMD:%lu\n", v); }
+}
+
+/* Full-Speed main loop: init the capture pipeline, the signal generator and
+   the USBFS device, then stream full blocks over EP3 IN. The High-Speed
+   build provides its own main loop in hs_link_hardware.c. */
+#ifndef HS_BUILD
 void Hardware(void)
 {
-    uint16_t batch_cnt = 0;
-
     printf("Build Time: %s %s\n", __DATE__, __TIME__);
 
     RCC_Configuration();
-    TIM2_Init();
     Capture_GPIO_Init();
     Signal_Init();
+    Capture_HW_Init(10000);
+    Signal_Timer_Init();
 
     printf("Signal SoftUART on PA15, 1000bps, msg=%s", sig_msg);
 
@@ -444,17 +477,14 @@ void Hardware(void)
 
     while(1)
     {
-        /* Take data from the ring buffer and send it in batches; a blocking USB send does not affect ISR sampling */
-        while(ring_tail != ring_head)
+        uint16_t blen = 0;
+        const uint8_t *blk = Capture_TakeBlock(&blen);
+        if(blk != 0 && blen > 0)
         {
-            batch_buf[batch_cnt++] = cap_ring[ring_tail];
-            ring_tail = (ring_tail + 1) & (RING_SIZE - 1);
-
-            if(batch_cnt >= BATCH_POINTS)
-            {
-                USB_SendBuf(batch_buf, BATCH_POINTS);
-                batch_cnt = 0;
-            }
+            USB_SendBuf(blk, blen);
+            Capture_ReleaseBlock();
         }
+        Capture_Diag_Report();
     }
 }
+#endif /* HS_BUILD */

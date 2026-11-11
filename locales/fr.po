@@ -1,0 +1,950 @@
+# French (fr) translations for HJS-Workbench.
+# -*- coding: utf-8 -*-
+msgid ""
+msgstr ""
+"Project-Id-Version: HJS-Workbench 0.6.2\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "\n({n} sample points, {m} events)"
+msgstr "\n({n} points d'échantillonnage, {m} événements)"
+
+msgid "\n-- Built-in UART decode --"
+msgstr "\n-- Décodage UART intégré --"
+
+msgid "\n-- Data log --  {rows} rows written -> {path}"
+msgstr "\n-- Journal de données --  {rows} lignes écrites -> {path}"
+
+msgid "\n-- Edge-triggered totals --"
+msgstr "\n-- Totaux déclenchés sur front --"
+
+msgid "\n-- Local comparison (points {lo}-{hi}, █=high _=low ^=diff) --"
+msgstr "\n-- Comparaison locale (points {lo}-{hi}, █=haut _=bas ^=diff) --"
+
+msgid "\n-- UART decode ({ch}, 1000bps 8N1) --"
+msgstr "\n-- Décodage UART ({ch}, 1000bps 8N1) --"
+
+msgid "\n-- {ch} detailed measurement --"
+msgstr "\n-- {ch} mesure détaillée --"
+
+msgid "\n-- {ch} live measurement --"
+msgstr "\n-- {ch} mesure en direct --"
+
+msgid "\n-- {ch} measurement --"
+msgstr "\n-- {ch} mesure --"
+
+msgid "\n===== Offline demo: {name} (built-in test waveform, no hardware) ====="
+msgstr "\n===== Démo hors ligne : {name} (signal de test intégré, sans matériel) ====="
+
+msgid "\nConnected to {port}, analyzing standalone ... (Ctrl+C to exit)\n"
+msgstr "\nConnecté à {port}, analyse autonome ... (Ctrl+C pour quitter)\n"
+
+msgid "\nConnected to {port}, decoding [{name}] live ... (Ctrl+C to exit)\n"
+msgstr "\nConnecté à {port}, décodage de [{name}] en direct ... (Ctrl+C pour quitter)\n"
+
+msgid "\nConnected to {port}, measuring live ... (Ctrl+C to exit)\n"
+msgstr "\nConnecté à {port}, mesure en direct ... (Ctrl+C pour quitter)\n"
+
+msgid "\nDiff interval list exported: {out}"
+msgstr "\nListe des intervalles de différence exportée : {out}"
+
+msgid "\nEnter to capture another screen, q to quit: "
+msgstr "\nEntrée pour capturer un autre écran, q pour quitter : "
+
+msgid "\nExited"
+msgstr "\nQuitté"
+
+msgid "\nExited, CSV saved: {path}"
+msgstr "\nQuitté, CSV enregistré : {path}"
+
+msgid "\nExited."
+msgstr "\nQuitté."
+
+msgid "\nPress Enter to return to the menu..."
+msgstr "\nAppuyez sur Entrée pour revenir au menu..."
+
+msgid "\nReport exported: {out}"
+msgstr "\nRapport exporté : {out}"
+
+msgid "    ... the other {n} are in the CSV"
+msgstr "    ... les {n} autres sont dans le CSV"
+
+msgid "    {ms:8.3f} ms  width {w:.0f}us  level={lvl}"
+msgstr "    {ms:8.3f} ms  largeur {w:.0f}us  niveau={lvl}"
+
+msgid "  Baud {baud:.0f} bps | Char period {period:.3f} ms | Packet length {nchar} chars | Frame format 8N1"
+msgstr "  Débit {baud:.0f} bps | Période de caractère {period:.3f} ms | Longueur de paquet {nchar} caractères | Format de trame 8N1"
+
+msgid "  Byte mode: {unit} byte(s) per sample"
+msgstr "  Mode octet : {unit} octet(s) par échantillon"
+
+msgid "  Channel   Rising   Falling"
+msgstr "  Canal   Montant   Descendant"
+
+msgid "  Channels: {count} ({names})"
+msgstr "  Canaux : {count} ({names})"
+
+msgid "  Duty           : {duty:.1f} %   ({cycles} cycles averaged)"
+msgstr "  Rapport cyclique : {duty:.1f} %   ({cycles} cycles moyennés)"
+
+msgid "  Frequency      : {freq:.1f} Hz"
+msgstr "  Fréquence       : {freq:.1f} Hz"
+
+msgid "  Frequency {freq:.1f} Hz | Period {period:.3f} ms | Duty {duty:.1f}%"
+msgstr "  Fréquence {freq:.1f} Hz | Période {period:.3f} ms | Rapport cyclique {duty:.1f}%"
+
+msgid "  Glitches: none (threshold {us:.0f}us)"
+msgstr "  Parasites : aucun (seuil {us:.0f}us)"
+
+msgid "  High pulse     : {high:.3f} ms"
+msgstr "  Impulsion haute : {high:.3f} ms"
+
+msgid "  Low pulse      : {low:.3f} ms"
+msgstr "  Impulsion basse : {low:.3f} ms"
+
+msgid "  No complete packet detected in this window"
+msgstr "  Aucun paquet complet détecté dans cette fenêtre"
+
+msgid "  Period         : {period:.3f} ms  (min {pmin:.3f} / max {pmax:.3f})"
+msgstr "  Période         : {period:.3f} ms  (min {pmin:.3f} / max {pmax:.3f})"
+
+msgid "  Pulse width: min {mn:.0f}us | median {median:.0f}us | mean {mean:.0f}us | max {mx:.0f}us ({count} segments)"
+msgstr "  Largeur d'impulsion : min {mn:.0f}us | médiane {median:.0f}us | moyenne {mean:.0f}us | max {mx:.0f}us ({count} segments)"
+
+msgid "  Received: (no complete frame decoded in this window)"
+msgstr "  Reçu : (aucune trame complète décodée dans cette fenêtre)"
+
+msgid "  Received: {text}"
+msgstr "  Reçu : {text}"
+
+msgid "  Sample rate: {rate} Hz"
+msgstr "  Fréquence d'échantillonnage : {rate} Hz"
+
+msgid "  Signal insufficient"
+msgstr "  Signal insuffisant"
+
+msgid "  Silent: no transitions in the whole segment (likely floating / constant level / not wired)"
+msgstr "  Silencieux : aucune transition dans tout le segment (probablement flottant / niveau constant / non câblé)"
+
+msgid "  Width histogram:"
+msgstr "  Histogramme des largeurs :"
+
+msgid "  [!] Glitches (< {us:.0f}us): {n} found:"
+msgstr "  [!] Parasites (< {us:.0f}us) : {n} trouvés :"
+
+msgid "  [0] Back to main menu"
+msgstr "  [0] Retour au menu principal"
+
+msgid "  [1] Full offline self-test report (no hardware, zero flashing, for acceptance)"
+msgstr "  [1] Rapport complet d'autotest hors ligne (sans matériel, zéro flashage, pour validation)"
+
+msgid "  [1] Language"
+msgstr "  [1] Langue"
+
+msgid "  [1] Live serial decode (needs hardware)"
+msgstr "  [1] Décodage série en direct (nécessite le matériel)"
+
+msgid "  [2] Device"
+msgstr "  [2] Appareil"
+
+msgid "  [2] Offline demo (built-in test waveform, no hardware)"
+msgstr "  [2] Démo hors ligne (signal de test intégré, sans matériel)"
+
+msgid "  [2] PPM multi-channel extension check"
+msgstr "  [2] Vérification de l'extension multi-canaux PPM"
+
+msgid "  [3] Export all events to CSV"
+msgstr "  [3] Exporter tous les événements en CSV"
+
+msgid "  [3] Sample rate"
+msgstr "  [3] Fréquence d'échantillonnage"
+
+msgid "  [4] Capture mode"
+msgstr "  [4] Mode de capture"
+
+msgid "  [4] Pulse statistics and glitch detection"
+msgstr "  [4] Statistiques d'impulsions et détection de parasites"
+
+msgid "  [5] Dual-waveform diff"
+msgstr "  [5] Différence entre deux signaux"
+
+msgid "  [5] Restore default rate and mode"
+msgstr "  [5] Restaurer la fréquence et le mode par défaut"
+
+msgid "  [6] HTML waveform browser export"
+msgstr "  [6] Export du signal au format HTML"
+
+msgid "  [7] File analysis (UART decode + measurement)"
+msgstr "  [7] Analyse de fichier (décodage UART + mesure)"
+
+msgid "  high=█  low=_"
+msgstr "  haut=█  bas=_"
+
+msgid "  transitions {edges}"
+msgstr "  transitions {edges}"
+
+msgid "  {ch}: {freq:8.1f} Hz   Duty {duty:5.1f}%"
+msgstr "  {ch} : {freq:8.1f} Hz   Rapport cyclique {duty:5.1f}%"
+
+msgid " (no imported files)"
+msgstr " (aucun fichier importé)"
+
+msgid " (no serial port detected)"
+msgstr " (aucun port série détecté)"
+
+msgid " Device:"
+msgstr " Appareil :"
+
+msgid " Mode:"
+msgstr " Mode :"
+
+msgid " Port:"
+msgstr " Port :"
+
+msgid " Sample points:"
+msgstr " Points d'échantillonnage :"
+
+msgid " Sample rate:"
+msgstr " Fréquence d'échantillonnage :"
+
+msgid "(Could not open automatically; double-click the file manually)"
+msgstr "(Ouverture automatique impossible ; double-cliquez sur le fichier manuellement)"
+
+msgid "(no events decoded)"
+msgstr "(aucun événement décodé)"
+
+msgid "(no periodic signal)"
+msgstr "(aucun signal périodique)"
+
+msgid "- If in_waiting stays 0: the device is not sending on this port; check that you picked the USB-FS port, that A15->D0 is wired, and that the serial monitor is closed;"
+msgstr "- Si in_waiting reste à 0 : l'appareil n'émet rien sur ce port ; vérifiez que vous avez choisi le port USB-FS, que A15->D0 est câblé et que le moniteur série est fermé ;"
+
+msgid "- Try unplugging and replugging the bottom USB cable or pressing RESET, then pick the port again."
+msgstr "- Essayez de débrancher puis rebrancher le câble USB inférieur ou d'appuyer sur RESET, puis choisissez à nouveau le port."
+
+msgid "-- Multi-channel frequency --"
+msgstr "-- Fréquence multi-canaux --"
+
+msgid "-- Serial parameter measurement --"
+msgstr "-- Mesure des paramètres série --"
+
+msgid "-- Terminal waveform {ch} (first 100 points of the packet = 10 ms) --"
+msgstr "-- Signal du terminal {ch} (100 premiers points du paquet = 10 ms) --"
+
+msgid "-> square wave {hz} Hz"
+msgstr "-> signal carré {hz} Hz"
+
+msgid "-> switched to UART mode"
+msgstr "-> passage en mode UART"
+
+msgid "0. Quit"
+msgstr "0. Quitter"
+
+msgid "1. Capture to file"
+msgstr "1. Capture vers fichier"
+
+msgid "2. Live analyzer"
+msgstr "2. Analyseur en direct"
+
+msgid "3. Live measurement"
+msgstr "3. Mesure en direct"
+
+msgid "4. Protocol decoder"
+msgstr "4. Décodeur de protocole"
+
+msgid "5. Signal generator"
+msgstr "5. Générateur de signaux"
+
+msgid "6. Offline tools"
+msgstr "6. Outils hors ligne"
+
+msgid "7. Settings"
+msgstr "7. Paramètres"
+
+msgid "8. Quick start guide"
+msgstr "8. Guide de démarrage rapide"
+
+msgid "===== Available devices ====="
+msgstr "===== Appareils disponibles ====="
+
+msgid "===== Available protocol decoders ====="
+msgstr "===== Décodeurs de protocole disponibles ====="
+
+msgid "===== Capture mode ====="
+msgstr "===== Mode de capture ====="
+
+msgid "===== Detected serial ports ====="
+msgstr "===== Ports série détectés ====="
+
+msgid "===== Device configuration ====="
+msgstr "===== Configuration de l'appareil ====="
+
+msgid "===== HJS-Workbench - Three-in-one live measurement ====="
+msgstr "===== HJS-Workbench - Mesure en direct trois-en-un ====="
+
+msgid "===== HJS-Workbench - Unified protocol analysis ====="
+msgstr "===== HJS-Workbench - Analyse de protocole unifiée ====="
+
+msgid "===== Offline tools ====="
+msgstr "===== Outils hors ligne ====="
+
+msgid "===== Sample rate ====="
+msgstr "===== Fréquence d'échantillonnage ====="
+
+msgid "===== Settings ====="
+msgstr "===== Paramètres ====="
+
+msgid "===== Standalone analyzer terminal (no PulseView needed) ====="
+msgstr "===== Terminal d'analyse autonome (PulseView non requis) ====="
+
+msgid "A release-notes prompt shows what changed after an update."
+msgstr "Un message de notes de version indique ce qui a changé après une mise à jour."
+
+msgid "Apply"
+msgstr "Appliquer"
+
+msgid "Back"
+msgstr "Précédent"
+
+msgid "Burst"
+msgstr "Rafale"
+
+msgid "CSV output path (Enter defaults to proto_diff_report.csv): "
+msgstr "Chemin du fichier CSV (Entrée = proto_diff_report.csv) : "
+
+msgid "CSV output path (Enter defaults to proto_stats_report.csv): "
+msgstr "Chemin du fichier CSV (Entrée = proto_stats_report.csv) : "
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Cannot capture"
+msgstr "Capture impossible"
+
+msgid "Cannot change device"
+msgstr "Impossible de changer d'appareil"
+
+msgid "Cannot connect"
+msgstr "Connexion impossible"
+
+msgid "Cannot open serial port {port}: {error}"
+msgstr "Impossible d'ouvrir le port série {port} : {error}"
+
+msgid "Cannot read file {path}: the file has no sample-rate information."
+msgstr "Impossible de lire le fichier {path} : le fichier ne contient pas d'information de fréquence d'échantillonnage."
+
+msgid "Cannot read file {path}: {error}"
+msgstr "Impossible de lire le fichier {path} : {error}"
+
+msgid "Cannot save"
+msgstr "Enregistrement impossible"
+
+msgid "Cannot set the DTR control line: {error}"
+msgstr "Impossible de définir la ligne de contrôle DTR : {error}"
+
+msgid "Cannot set the RTS control line: {error}"
+msgstr "Impossible de définir la ligne de contrôle RTS : {error}"
+
+msgid "Capture"
+msgstr "Capturer"
+
+msgid "Capture controls"
+msgstr "Contrôles de capture"
+
+msgid "Capture failed"
+msgstr "Échec de la capture"
+
+msgid "Capture file path (.sr/.bin), Enter to use a decoder demo waveform: "
+msgstr "Chemin du fichier de capture (.sr/.bin), Entrée pour un signal de démo du décodeur : "
+
+msgid "Capture file path (.sr/.bin): "
+msgstr "Chemin du fichier de capture (.sr/.bin) : "
+
+msgid "Capture mode saved: {mode}"
+msgstr "Mode de capture enregistré : {mode}"
+
+msgid "Capture starts in 2 seconds; confirm A15 is connected to D0 ..."
+msgstr "La capture démarre dans 2 secondes ; confirmez que A15 est connecté à D0 ..."
+
+msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the CH32 data port selected (bottom USB-FS port, not the debug port), is A15 looped back to D0, is the port free of other programs; then retry."
+msgstr "Capture expirée : {got} points reçus, {need} points requis.\nVérifiez : le port de données CH32 est-il sélectionné (port USB-FS inférieur, pas le port de débogage), A15 est-il bouclé sur D0, le port est-il libre de tout autre programme ; puis réessayez."
+
+msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
+msgstr "La capture, la mesure et le décodage ne fonctionnent que sur le port de données ; un câble dans le port de débogage ne suffit pas."
+
+msgid "Captured {n} points ({rate} Hz)"
+msgstr "Capturé {n} points ({rate} Hz)"
+
+msgid "Capturing burst from {port}..."
+msgstr "Capture de la rafale depuis {port}..."
+
+msgid "Capturing {n} points from {port} ..."
+msgstr "Capture de {n} points depuis {port} ..."
+
+msgid "Capturing {points} points from {port}..."
+msgstr "Capture de {points} points depuis {port}..."
+
+msgid "Channel"
+msgstr "Canal"
+
+msgid "Channel list (comma-separated, Enter defaults to all): "
+msgstr "Liste des canaux (séparés par des virgules, Entrée = tous) : "
+
+msgid "Channel names do not match the channel count ({names} names, {count} channels)."
+msgstr "Les noms de canaux ne correspondent pas au nombre de canaux ({names} noms, {count} canaux)."
+
+msgid "Choose capture mode number (Enter keeps the current mode, q quits): "
+msgstr "Choisissez le numéro du mode de capture (Entrée conserve le mode actuel, q quitte) : "
+
+msgid "Choose decoder number: "
+msgstr "Choisissez le numéro du décodeur : "
+
+msgid "Choose device number (Enter keeps the current device, q quits): "
+msgstr "Choisissez le numéro de l'appareil (Entrée conserve l'appareil actuel, q quitte) : "
+
+msgid "Choose mode: "
+msgstr "Choisissez le mode : "
+
+msgid "Choose sample rate number (Enter keeps the current rate, q quits): "
+msgstr "Choisissez le numéro de fréquence d'échantillonnage (Entrée conserve la fréquence actuelle, q quitte) : "
+
+msgid "Choose the data port number (Enter rescans, q quits): "
+msgstr "Choisissez le numéro du port de données (Entrée rescanne, q quitte) : "
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Connect"
+msgstr "Connecter"
+
+msgid "Connect the device"
+msgstr "Connecter l'appareil"
+
+msgid "Connect the signal port before sending a command."
+msgstr "Connectez le port de signal avant d'envoyer une commande."
+
+msgid "Connected to {port}"
+msgstr "Connecté à {port}"
+
+msgid "Content"
+msgstr "Contenu"
+
+msgid "Continuous capture mode in the GUI with a rolling waveform, alongside the existing one-shot capture."
+msgstr "Mode de capture continue dans l'interface graphique avec un signal défilant, en plus de la capture unique existante."
+
+msgid "Continuous capture: use the continuous start/stop controls to stream a rolling window that refreshes the waveform every 100-200 ms; stopping releases the port."
+msgstr "Capture continue : utilisez les commandes de démarrage/arrêt continu pour diffuser une fenêtre défilante qui rafraîchit le signal toutes les 100-200 ms ; l'arrêt libère le port."
+
+msgid "Created:"
+msgstr "Créé :"
+
+msgid "Created: {out}  ({bytes} bytes)"
+msgstr "Créé : {out}  ({bytes} octets)"
+
+msgid "Current capture mode: {mode}"
+msgstr "Mode de capture actuel : {mode}"
+
+msgid "Current device: {name}"
+msgstr "Appareil actuel : {name}"
+
+msgid "Current sample rate: {rate} Hz"
+msgstr "Fréquence d'échantillonnage actuelle : {rate} Hz"
+
+msgid "Dark"
+msgstr "Sombre"
+
+msgid "Decode"
+msgstr "Décoder"
+
+msgid "Decode failed"
+msgstr "Échec du décodage"
+
+msgid "Decode failed (ignored):"
+msgstr "Échec du décodage (ignoré) :"
+
+msgid "Decoded {n} events"
+msgstr "{n} événements décodés"
+
+msgid "Decoder:"
+msgstr "Décodeur :"
+
+msgid "Defaults restored: sample rate {rate} Hz, capture mode {mode}."
+msgstr "Valeurs par défaut restaurées : fréquence d'échantillonnage {rate} Hz, mode de capture {mode}."
+
+msgid "Device selected: {name}"
+msgstr "Appareil sélectionné : {name}"
+
+msgid "Different lengths: comparing only the overlapping {n} points"
+msgstr "Longueurs différentes : comparaison des {n} points communs uniquement"
+
+msgid "Disconnect"
+msgstr "Déconnecter"
+
+msgid "Dual-waveform diff report (A=reference, B=device under test)"
+msgstr "Rapport de différence entre deux signaux (A=référence, B=appareil testé)"
+
+msgid "Duty"
+msgstr "Rapport cyclique"
+
+msgid "Duty cycle"
+msgstr "Rapport cyclique"
+
+msgid "Duty cycle must be between {min} and {max} percent."
+msgstr "Le rapport cyclique doit être compris entre {min} et {max} pour cent."
+
+msgid "Enter a frequency (1-5000) for a square wave; u = switch to UART; q = quit\n"
+msgstr "Entrez une fréquence (1-5000) pour un signal carré ; u = passer en UART ; q = quitter\n"
+
+msgid "Enter a numeric frequency, or u / q"
+msgstr "Entrez une fréquence numérique, ou u / q"
+
+msgid "Exited"
+msgstr "Quitté"
+
+msgid "Exited."
+msgstr "Quitté."
+
+msgid "Exported: {path}"
+msgstr "Exporté : {path}"
+
+msgid "Extended firmware signal generator: PWM, burst, and forced high/low commands, driven from the new GUI signal panel."
+msgstr "Générateur de signaux firmware étendu : commandes PWM, rafale et niveau haut/bas forcé, pilotées depuis le nouveau panneau de signal de l'interface graphique."
+
+msgid "Failed to open the serial port (close the serial monitor and retry): {error}"
+msgstr "Échec de l'ouverture du port série (fermez le moniteur série et réessayez) : {error}"
+
+msgid "File already imported: {path}"
+msgstr "Fichier déjà importé : {path}"
+
+msgid "Finish"
+msgstr "Terminer"
+
+msgid "First-run language picker in the GUI and the CLI."
+msgstr "Sélecteur de langue au premier lancement dans l'interface graphique et la CLI."
+
+msgid "First-run onboarding wizard and a re-openable Quick Start Guide in the GUI and the CLI."
+msgstr "Assistant d'accueil au premier lancement et guide de démarrage rapide ré-ouvrable dans l'interface graphique et la CLI."
+
+msgid "Fit"
+msgstr "Tout afficher"
+
+msgid "Fit to all data"
+msgstr "Afficher toutes les données"
+
+msgid "Force high"
+msgstr "Forcer au niveau haut"
+
+msgid "Force low"
+msgstr "Forcer au niveau bas"
+
+msgid "French and German language packs: five languages with runtime switching."
+msgstr "Packs de langue français et allemand : cinq langues avec changement à chaud."
+
+msgid "Frequency"
+msgstr "Fréquence"
+
+msgid "Frequency is limited to 1-5000 Hz and duty to 1-99 percent; keep the inputs inside these limits."
+msgstr "La fréquence est limitée à 1-5000 Hz et le rapport cyclique à 1-99 pour cent ; gardez les entrées dans ces limites."
+
+msgid "Frequency must be between {min} and {max} Hz."
+msgstr "La fréquence doit être comprise entre {min} et {max} Hz."
+
+msgid "Full protocol self-test report (fully offline - zero flashing - repeatable acceptance)"
+msgstr "Rapport complet d'autotest de protocole (entièrement hors ligne - zéro flashage - validation reproductible)"
+
+msgid "Glitch threshold us (Enter defaults to 200): "
+msgstr "Seuil de parasite us (Entrée = 200) : "
+
+msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
+msgstr "Couche d'abstraction matérielle : une interface de backend uniforme pour chaque carte de développement réelle."
+
+msgid "Import"
+msgstr "Importer"
+
+msgid "Import capture files"
+msgstr "Importer des fichiers de capture"
+
+msgid "Imported {n} file(s)"
+msgstr "{n} fichier(s) importé(s)"
+
+msgid "In the GUI use the port list and refresh it; in the CLI choose the capture entry or the signal generator and pick the port number from the detected list."
+msgstr "Dans l'interface graphique, utilisez la liste des ports et rafraîchissez-la ; dans la CLI, choisissez l'entrée de capture ou le générateur de signaux et prenez le numéro de port dans la liste détectée."
+
+msgid "Internationalization: English, Simplified Chinese, Traditional Chinese."
+msgstr "Internationalisation : anglais, chinois simplifié, chinois traditionnel."
+
+msgid "Invalid channel list, using all channels"
+msgstr "Liste de canaux invalide, utilisation de tous les canaux"
+
+msgid "Invalid choice"
+msgstr "Choix invalide"
+
+msgid "Invalid duty cycle"
+msgstr "Rapport cyclique invalide"
+
+msgid "Invalid frequency"
+msgstr "Fréquence invalide"
+
+msgid "Invalid number"
+msgstr "Nombre invalide"
+
+msgid "Invalid pulse count"
+msgstr "Nombre d'impulsions invalide"
+
+msgid "Language changed."
+msgstr "Langue modifiée."
+
+msgid "Language:"
+msgstr "Langue :"
+
+msgid "Light"
+msgstr "Clair"
+
+msgid "Live analysis, live measurement, and the GUI continuous capture follow the selected sample rate."
+msgstr "L'analyse en direct, la mesure en direct et la capture continue de l'interface graphique suivent la fréquence d'échantillonnage sélectionnée."
+
+msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
+msgstr "Bouclez A15 vers D0 avec un cavalier pour capturer et décoder le signal généré."
+
+msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
+msgstr "Assurez-vous qu'aucun autre programme (un moniteur série, une autre capture) n'occupe le port avant de connecter."
+
+msgid "Measure"
+msgstr "Mesure"
+
+msgid "Mode"
+msgstr "Mode"
+
+msgid "Most common bytes:"
+msgstr "Octets les plus fréquents :"
+
+msgid "New device configuration entry in the CLI and the GUI."
+msgstr "Nouvelle entrée de configuration d'appareil dans la CLI et l'interface graphique."
+
+msgid "Next"
+msgstr "Suivant"
+
+msgid "Nine protocol decoders, measurement, and .sr/.bin file support."
+msgstr "Neuf décodeurs de protocole, la mesure et la prise en charge des fichiers .sr/.bin."
+
+msgid "No events decoded"
+msgstr "Aucun événement décodé"
+
+msgid "No registered decoders; check that the decoder modules in the core package are loaded."
+msgstr "Aucun décodeur enregistré ; vérifiez que les modules de décodeur du paquet core sont chargés."
+
+msgid "No serial ports found, check the USB connection"
+msgstr "Aucun port série trouvé, vérifiez la connexion USB"
+
+msgid "No usable serial port detected. Connect the device data port, then click Refresh ports."
+msgstr "Aucun port série utilisable détecté. Connectez le port de données de l'appareil, puis cliquez sur Rafraîchir les ports."
+
+msgid "No usable serial port detected. Connect the device, then click Refresh ports."
+msgstr "Aucun port série utilisable détecté. Connectez l'appareil, puis cliquez sur Rafraîchir les ports."
+
+msgid "Not connected"
+msgstr "Non connecté"
+
+msgid "Not enough data."
+msgstr "Données insuffisantes."
+
+msgid "Note: the in-frame channel gaps are recognized as PPM and not misreported as SERVO (gaps != 20 ms)."
+msgstr "Remarque : les écarts de canal dans la trame sont reconnus comme PPM et non signalés à tort comme SERVO (écarts != 20 ms)."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "One-shot and continuous capture share the data port and cannot run at the same time."
+msgstr "La capture unique et la capture continue partagent le port de données et ne peuvent pas fonctionner en même temps."
+
+msgid "One-shot capture: choose the sample point count and start the capture; the waveform appears when the transfer completes."
+msgstr "Capture unique : choisissez le nombre de points d'échantillonnage et lancez la capture ; le signal apparaît à la fin du transfert."
+
+msgid "Open capture file"
+msgstr "Ouvrir un fichier de capture"
+
+msgid "Open file"
+msgstr "Ouvrir un fichier"
+
+msgid "Open the browser automatically after generation? (Enter=yes, n=no): "
+msgstr "Ouvrir le navigateur automatiquement après la génération ? (Entrée=oui, n=non) : "
+
+msgid "Opened: {path}"
+msgstr "Ouvert : {path}"
+
+msgid "Output file (Enter defaults to proto_wave.html): "
+msgstr "Fichier de sortie (Entrée = proto_wave.html) : "
+
+msgid "Overlay decoder name (Enter to skip): "
+msgstr "Nom du décodeur superposé (Entrée pour ignorer) : "
+
+msgid "PWM"
+msgstr "PWM"
+
+msgid "Plug the board into a USB port and check the two USB connectors on the board."
+msgstr "Branchez la carte sur un port USB et vérifiez les deux connecteurs USB de la carte."
+
+msgid "Press Enter to continue"
+msgstr "Appuyez sur Entrée pour continuer"
+
+msgid "Pulse count"
+msgstr "Nombre d'impulsions"
+
+msgid "Pulse count must be between {min} and {max}."
+msgstr "Le nombre d'impulsions doit être compris entre {min} et {max}."
+
+msgid "Pulse statistics and glitch detection  |  {src}"
+msgstr "Statistiques d'impulsions et détection de parasites  |  {src}"
+
+msgid "Quick Start Guide"
+msgstr "Guide de démarrage rapide"
+
+msgid "Quick start"
+msgstr "Démarrage rapide"
+
+msgid "Read failed:"
+msgstr "Échec de la lecture :"
+
+msgid "Reading file..."
+msgstr "Lecture du fichier..."
+
+msgid "Realtime"
+msgstr "Temps réel"
+
+msgid "Ready"
+msgstr "Prêt"
+
+msgid "Received {n} bytes in {t:.1f} s"
+msgstr "Reçu {n} octets en {t:.1f} s"
+
+msgid "Reference waveform A path (.sr/.bin): "
+msgstr "Chemin du signal de référence A (.sr/.bin) : "
+
+msgid "Refresh ports"
+msgstr "Rafraîchir les ports"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Removed from the import list: {path}"
+msgstr "Retiré de la liste d'import : {path}"
+
+msgid "Restore defaults"
+msgstr "Restaurer les valeurs par défaut"
+
+msgid "Restored default sample rate and capture mode"
+msgstr "Fréquence d'échantillonnage et mode de capture par défaut restaurés"
+
+msgid "Run decode"
+msgstr "Lancer le décodage"
+
+msgid "Runtime language switching without restarting."
+msgstr "Changement de langue à chaud sans redémarrage."
+
+msgid "Sample rate (.bin only, Enter for auto): "
+msgstr "Fréquence d'échantillonnage (.bin uniquement, Entrée = auto) : "
+
+msgid "Sample rate: {rate} Hz, capture mode: {mode}"
+msgstr "Fréquence d'échantillonnage : {rate} Hz, mode de capture : {mode}"
+
+msgid "Sample rate in Hz (Enter defaults to {rate}): "
+msgstr "Fréquence d'échantillonnage en Hz (Entrée = {rate}) : "
+
+msgid "Sample rate saved: {rate} Hz"
+msgstr "Fréquence d'échantillonnage enregistrée : {rate} Hz"
+
+msgid "Sample rate {rate} Hz - {n} points ({ms:.1f} ms) - glitch threshold {us:.0f}us"
+msgstr "Fréquence d'échantillonnage {rate} Hz - {n} points ({ms:.1f} ms) - seuil de parasite {us:.0f}us"
+
+msgid "Sample rate {rate} Hz - {n} points - duration {ms:.1f} ms"
+msgstr "Fréquence d'échantillonnage {rate} Hz - {n} points - durée {ms:.1f} ms"
+
+msgid "Sample rate: {rate} Hz   Window: {n} points\n"
+msgstr "Fréquence d'échantillonnage : {rate} Hz   Fenêtre : {n} points\n"
+
+msgid "Sample-rate and capture-mode selectors in the GUI toolbar and the CLI settings menu, always driven by the current backend capabilities."
+msgstr "Sélecteurs de fréquence d'échantillonnage et de mode de capture dans la barre d'outils de l'interface graphique et le menu Paramètres de la CLI, toujours pilotés par les capacités du backend actuel."
+
+msgid "Saved rate and mode choices are validated before every capture and fall back to the backend defaults when unsupported or stale."
+msgstr "Les choix de fréquence et de mode enregistrés sont validés avant chaque capture et reviennent aux valeurs par défaut du backend lorsqu'ils ne sont pas pris en charge ou obsolètes."
+
+msgid "Select the port"
+msgstr "Sélectionner le port"
+
+msgid "Select: "
+msgstr "Sélection : "
+
+msgid "Send"
+msgstr "Envoyer"
+
+msgid "Send failed"
+msgstr "Échec de l'envoi"
+
+msgid "Sent: {line}"
+msgstr "Envoyé : {line}"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Settings dialog for language and theme, with a reorganized toolbar."
+msgstr "Boîte de dialogue Paramètres pour la langue et le thème, avec une barre d'outils réorganisée."
+
+msgid "Signal"
+msgstr "Signal"
+
+msgid "Signal generator"
+msgstr "Générateur de signaux"
+
+msgid "Skip"
+msgstr "Passer"
+
+msgid "Software UART"
+msgstr "UART logiciel"
+
+msgid "Square wave"
+msgstr "Signal carré"
+
+msgid "Start continuous"
+msgstr "Démarrer la capture continue"
+
+msgid "Step {number} of {total}: {title}"
+msgstr "Étape {number} sur {total} : {title}"
+
+msgid "Step {number}: {title}"
+msgstr "Étape {number} : {title}"
+
+msgid "Stop"
+msgstr "Arrêter"
+
+msgid "Stopping continuous capture..."
+msgstr "Arrêt de la capture continue..."
+
+msgid "Streaming from {port}..."
+msgstr "Diffusion depuis {port}..."
+
+msgid "Streaming {n} points"
+msgstr "Diffusion de {n} points"
+
+msgid "Ten new protocol decoders: DHT11, 1-Wire, SWD, Modbus RTU, Wiegand, HD44780, Sony SIRC, DS1302, Manchester, and NMEA 0183."
+msgstr "Dix nouveaux décodeurs de protocole : DHT11, 1-Wire, SWD, Modbus RTU, Wiegand, HD44780, Sony SIRC, DS1302, Manchester et NMEA 0183."
+
+msgid "The CH32 board is the first backend; baud rates, channel count, byte mode, sample rate, and troubleshooting text all come from its declared capabilities."
+msgstr "La carte CH32 est le premier backend ; débits en bauds, nombre de canaux, mode octet, fréquence d'échantillonnage et textes de dépannage proviennent tous de ses capacités déclarées."
+
+msgid "The data port (USB-FS) carries the capture stream; the debug port belongs to the WCH-Link debugger and is only for flashing and debugging."
+msgstr "Le port de données (USB-FS) transporte le flux de capture ; le port de débogage appartient au débogueur WCH-Link et ne sert qu'au flashage et au débogage."
+
+msgid "The data port appears as a new serial port when the cable is connected; if no port appears, check the cable and the USB driver."
+msgstr "Le port de données apparaît comme un nouveau port série lorsque le câble est connecté ; si aucun port n'apparaît, vérifiez le câble et le pilote USB."
+
+msgid "The decode tab lists the registered protocol decoders; pick one and run it on the captured data."
+msgstr "L'onglet Décoder liste les décodeurs de protocole enregistrés ; choisissez-en un et lancez-le sur les données capturées."
+
+msgid "The measurement tab reports frequency, period, pulse widths, duty, and edge counts per channel."
+msgstr "L'onglet Mesure indique la fréquence, la période, les largeurs d'impulsion, le rapport cyclique et le nombre de fronts par canal."
+
+msgid "The signal-generator tab drives the real firmware output on PA15 over the signal connection: software UART, square wave, PWM (frequency and duty), burst (frequency and pulse count), and forced high/low."
+msgstr "L'onglet Générateur de signaux pilote la vraie sortie firmware sur PA15 via la connexion de signal : UART logiciel, signal carré, PWM (fréquence et rapport cyclique), rafale (fréquence et nombre d'impulsions) et niveau haut/bas forcé."
+
+msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz by default on the CH32 board, up to 1 MHz on the High-Speed port)."
+msgstr "Le signal affiche les canaux D0-D7 à la fréquence d'échantillonnage du backend (10 kHz par défaut sur la carte CH32, jusqu'à 1 MHz sur le port High-Speed)."
+
+msgid "Theme:"
+msgstr "Thème :"
+
+msgid "Time"
+msgstr "Temps"
+
+msgid "Time(ms)"
+msgstr "Temps(ms)"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "UART text ({ch}, 8N1)"
+msgstr "Texte UART ({ch}, 8N1)"
+
+msgid "Unified CLI and GUI packages built on the shared core."
+msgstr "Paquets CLI et GUI unifiés construits sur le cœur partagé."
+
+msgid "Unknown decoder:"
+msgstr "Décodeur inconnu :"
+
+msgid "Unknown device backend: {id}. Available backends: {ids}"
+msgstr "Backend d'appareil inconnu : {id}. Backends disponibles : {ids}"
+
+msgid "Unsupported byte mode {unit} byte(s) per sample for the {name} backend; supported byte modes: {units}"
+msgstr "Mode octet {unit} octet(s) par échantillon non pris en charge pour le backend {name} ; modes octet pris en charge : {units}"
+
+msgid "Unsupported capture mode {mode} for the {name} backend; supported modes: {modes}"
+msgstr "Mode de capture {mode} non pris en charge pour le backend {name} ; modes pris en charge : {modes}"
+
+msgid "Unsupported channel count {count} for the {name} backend; supported channel count: {supported}"
+msgstr "Nombre de canaux {count} non pris en charge pour le backend {name} ; nombre de canaux pris en charge : {supported}"
+
+msgid "Unsupported channel names for the {name} backend: {names}"
+msgstr "Noms de canaux non pris en charge pour le backend {name} : {names}"
+
+msgid "Unsupported file type: {ext}. Please choose a .sr or .bin file."
+msgstr "Type de fichier non pris en charge : {ext}. Choisissez un fichier .sr ou .bin."
+
+msgid "Unsupported sample rate {rate} Hz for the {name} backend; supported rates: {rates} Hz"
+msgstr "Fréquence d'échantillonnage {rate} Hz non prise en charge pour le backend {name} ; fréquences prises en charge : {rates} Hz"
+
+msgid "Version {version}"
+msgstr "Version {version}"
+
+msgid "Waiting for the background capture to finish..."
+msgstr "Attente de la fin de la capture en arrière-plan..."
+
+msgid "Waveform B under test path (.sr/.bin): "
+msgstr "Chemin du signal B testé (.sr/.bin) : "
+
+msgid "Waveform zoom controls and multi-file import management."
+msgstr "Commandes de zoom du signal et gestion de l'import de plusieurs fichiers."
+
+msgid "Waveform, decode, and measurement"
+msgstr "Signal, décodage et mesure"
+
+msgid "Welcome to HJS-Workbench"
+msgstr "Bienvenue dans HJS-Workbench"
+
+msgid "What's new"
+msgstr "Nouveautés"
+
+msgid "Windows Setup installer and a cross-platform CLI install script."
+msgstr "Programme d'installation Windows et script d'installation CLI multiplateforme."
+
+msgid "Zoom in"
+msgstr "Zoom avant"
+
+msgid "Zoom in on the time axis"
+msgstr "Zoom avant sur l'axe du temps"
+
+msgid "Zoom out"
+msgstr "Zoom arrière"
+
+msgid "Zoom out on the time axis"
+msgstr "Zoom arrière sur l'axe du temps"
+
+msgid "available:"
+msgstr "disponibles :"
+
+msgid "duty~{duty:.1f}%"
+msgstr "rapport~{duty:.1f}%"
+
+msgid "freq~{freq:.1f} Hz"
+msgstr "fréq~{freq:.1f} Hz"
+
+msgid "insufficient signal"
+msgstr "signal insuffisant"
+
+msgid "{ch} details"
+msgstr "Détails {ch}"
+
+msgid "{name} - {count} channels, {unit} byte(s)/sample, {rate} Hz"
+msgstr "{name} - {count} canaux, {unit} octet(s)/échantillon, {rate} Hz"
+
+msgid "{type} (no details)"
+msgstr "{type} (aucun détail)"

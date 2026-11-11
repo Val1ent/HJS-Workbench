@@ -31,4 +31,16 @@ RELEASE_NOTES = {
         "Extended firmware signal generator: PWM, burst, and forced high/low commands, driven from the new GUI signal panel.",
         "First-run onboarding wizard and a re-openable Quick Start Guide in the GUI and the CLI.",
     ],
+    "0.6.2": [
+        "Multi-rate capture: the CH32 board records at 10 kHz, 100 kHz, 500 kHz, or 1 MHz through the USB3 High-Speed data port.",
+        "Dual capture modes: realtime streaming plus a 712704-byte burst buffer with a parsed header upload.",
+        "Every time axis and every saved .sr file now carries the sample rate that was actually recorded.",
+        "Sample-rate and capture-mode selectors in the GUI toolbar and the CLI settings menu, always driven by the current backend capabilities.",
+        "Saved rate and mode choices are validated before every capture and fall back to the backend defaults when unsupported or stale.",
+        "Live analysis, live measurement, and the GUI continuous capture follow the selected sample rate.",
+        "French and German language packs: five languages with runtime switching.",
+        "Settings dialog for language and theme, with a reorganized toolbar.",
+        "Waveform zoom controls and multi-file import management.",
+        "Windows Setup installer and a cross-platform CLI install script.",
+    ],
 }

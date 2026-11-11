@@ -6,12 +6,19 @@ from core.i18n import SUPPORTED_LANGUAGES, _, get_language, set_language
 
 from . import console  # noqa: F401  (helpers are used by every sub-flow)
 from . import capture_flow, device_flow, guide_flow, live_analyzer
-from . import live_measure, offline_flow, protocol_flow, signal_flow
+from . import live_measure, offline_flow, protocol_flow, session_flow
+from . import signal_flow
+from .console_setup import enable_utf8_console
 from .version import __version__
 
 
 def menu_items():
-    """Return the main menu lines in the active language."""
+    """Return the main menu lines in the active language.
+
+    Functional entries come first; the preference entries are grouped
+    under a single Settings entry, the guide is a help entry, and Quit
+    stays 0.
+    """
     return [
         _("1. Capture to file"),
         _("2. Live analyzer"),
@@ -19,11 +26,43 @@ def menu_items():
         _("4. Protocol decoder"),
         _("5. Signal generator"),
         _("6. Offline tools"),
-        _("7. Language"),
-        _("8. Device"),
-        _("9. Quick start guide"),
+        _("7. Settings"),
+        _("8. Quick start guide"),
         _("0. Quit"),
     ]
+
+
+def settings_menu():
+    """Settings submenu: Language, Device, Sample rate, Capture mode, and
+    the rate/mode reset.
+
+    The language and device entries reuse the existing flows; the rate
+    and mode entries run the shared session flows and the reset entry
+    removes both saved keys. Only the navigation changes.
+    """
+    while True:
+        print(_("===== Settings ====="))
+        print(_("  [1] Language"))
+        print(_("  [2] Device"))
+        print(_("  [3] Sample rate"))
+        print(_("  [4] Capture mode"))
+        print(_("  [5] Restore default rate and mode"))
+        print(_("  [0] Back to main menu"))
+        sel = input(_("Select: ")).strip()
+        if sel == "1":
+            change_language()
+        elif sel == "2":
+            device_flow.run()
+        elif sel == "3":
+            session_flow.choose_rate()
+        elif sel == "4":
+            session_flow.choose_mode()
+        elif sel == "5":
+            session_flow.restore_defaults()
+        elif sel == "0":
+            return
+        else:
+            print(_("Invalid choice"))
 
 
 def show_menu():
@@ -107,6 +146,7 @@ def show_release_notes():
 
 def main():
     """Main menu loop: every sub-flow returns here; only choice 0 exits."""
+    enable_utf8_console()
     first_run_language()
     show_release_notes()
     while True:
@@ -125,10 +165,8 @@ def main():
         elif sel == "6":
             offline_flow.run()
         elif sel == "7":
-            change_language()
+            settings_menu()
         elif sel == "8":
-            device_flow.run()
-        elif sel == "9":
             guide_flow.run()
         elif sel == "0":
             print(_("Exited."))

@@ -5,8 +5,9 @@ This module defines the contracts every device backend must follow:
 
 - ``DeviceCapabilities`` declares the real, measured properties of a board
   (baud rates, channel count and names, sample rate, byte mode, control
-  lines). The upper layers must read every hardware value from here and
-  never hard-code board parameters.
+  lines, capture modes, burst capacity, data port). The upper layers must
+  read every hardware value from here and never hard-code board
+  parameters.
 - ``DeviceConnection`` is a live connection to a real board.
 - ``DeviceBackend`` is one real board: port enumeration, connection, and
   configuration validation.
@@ -34,6 +35,19 @@ class DeviceCapabilities:
 
     All fields are hardware facts of the real board; the upper layers
     derive menus, defaults, and file metadata strictly from this object.
+
+    The fields added after ``assert_control_lines`` describe capture
+    modes and burst recording:
+
+    - ``supported_modes``: capture mode ids the firmware accepts
+      (for example ``realtime`` and ``burst``); empty means mode
+      selection is not supported.
+    - ``default_mode``: the mode id used when none is requested.
+    - ``burst_capacity``: exact byte capacity of the on-board burst
+      buffer; 0 means the board has no burst support.
+    - ``data_port_name``: short physical description of the data port.
+    - ``high_speed_required``: True when the declared multi-rate or
+      burst features need the High-Speed firmware, connector, and cable.
     """
 
     backend_id: str
@@ -47,6 +61,11 @@ class DeviceCapabilities:
     data_baud: int = 0
     signal_baud: int = 0
     assert_control_lines: bool = False
+    supported_modes: list = field(default_factory=list)
+    default_mode: str = "realtime"
+    burst_capacity: int = 0
+    data_port_name: str = ""
+    high_speed_required: bool = False
 
 
 class DeviceConnection(ABC):
@@ -64,6 +83,13 @@ class DeviceConnection(ABC):
     @abstractmethod
     def read_available(self):
         """Non-blocking read of the currently waiting bytes; return bytes."""
+
+    @abstractmethod
+    def read_blocking(self, count, timeout):
+        """Read up to ``count`` bytes, blocking for at most ``timeout``
+        seconds; return bytes, shorter when the timeout expires first,
+        ``b""`` only when no byte arrived in time. This is the blocking
+        counterpart of ``read_available``."""
 
     @abstractmethod
     def write(self, data):
@@ -119,9 +145,12 @@ class DeviceBackend(ABC):
 
     @abstractmethod
     def validate_config(self, sample_rate=None, unit_size=None,
-                        channels=None):
+                        channels=None, mode=None):
         """Verify that the requested values are within the real board's
         capabilities.
+
+        ``mode`` is a capture mode id from ``supported_modes``; a burst
+        request on a board whose ``burst_capacity`` is 0 is rejected.
 
         Any value outside the capabilities raises a clear error. Values
         are never silently substituted and no data is ever fabricated.

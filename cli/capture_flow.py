@@ -13,18 +13,36 @@ POINTS = 3000
 
 
 def run():
-    """Capture flow: pick a port -> capture POINTS points once -> save a
-.sr file; q returns to the main menu."""
+    """Capture flow: pick a port -> capture once -> save a .sr file; q
+    returns to the main menu.
+
+    The effective sample rate and capture mode are read from
+    core.session at run time and printed before the capture; realtime
+    captures POINTS points through acquire_serial, burst records the
+    whole burst buffer through acquire_burst. The saved file always
+    carries the rate that was actually applied.
+    """
     while True:
         port = console.choose_port()
         if port is None:
             return
+        rate = core.session.effective_sample_rate()
+        mode = core.session.effective_capture_mode()
+        print(_("Sample rate: {rate} Hz, capture mode: {mode}").format(
+            rate=rate, mode=core.session.mode_label(mode)))
         print(_("Capture starts in 2 seconds; confirm A15 is connected to D0 ..."))
         time.sleep(2)
-        print(_("Capturing {n} points from {port} ...").format(n=POINTS, port=port))
+        if mode == "burst":
+            print(_("Capturing burst from {port}...").format(port=port))
+            capture = lambda: core.acquire_burst(port, sample_rate=rate)
+        else:
+            print(_("Capturing {n} points from {port} ...").format(
+                n=POINTS, port=port))
+            capture = lambda: core.acquire_serial(port, POINTS,
+                                                  sample_rate=rate)
         t0 = time.time()
         try:
-            _rate, data = core.acquire_serial(port, POINTS)
+            applied_rate, data = capture()
         except BackendConnectionError as e:
             print(_("Failed to open the serial port (close the serial monitor and retry): {error}"
                     ).format(error=e))
@@ -38,7 +56,7 @@ def run():
             top = Counter(data).most_common(5)
             print(_("Most common bytes:"), [(hex(k), v) for k, v in top])
             fn = os.path.join(os.getcwd(), f"capture_{int(time.time())}.sr")
-            core.write_sr(fn, data)
+            core.write_sr(fn, data, rate=applied_rate)
             print(_("Created:"), fn)
         if input(_("\nEnter to capture another screen, q to quit: ")).strip().lower() == "q":
             return

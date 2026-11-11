@@ -13,10 +13,11 @@ WINDOW = 3000
 
 def run():
     """Three-in-one live measurement: per-channel frequency/duty + main
-channel detail metrics + edge-triggered counters. Channel count, names,
-and sample rate come from the current backend."""
+channel detail metrics + edge-triggered counters. Channel count and
+names come from the current backend; the sample rate is the effective
+session rate."""
     caps = core.current_backend().capabilities
-    sample_rate = caps.sample_rate
+    sample_rate = core.session.effective_sample_rate()
     nch = caps.channel_count
 
     port = console.choose_port()

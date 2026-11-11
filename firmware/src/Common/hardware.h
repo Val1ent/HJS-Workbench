@@ -19,10 +19,13 @@
 
 #include "ch32h417.h"
 #include "debug.h"
+#include "dma_capture.h"
 
 	 
 void Hardware(void);
-void Capture_Tick(void);
+void Capture_GPIO_Init(void);
+void Signal_Init(void);
+void Capture_Diag_Report(void);
 void Signal_Start(void);
 void Signal_Tick(void);
 int  Signal_HandleRx(const uint8_t *data, uint16_t len);

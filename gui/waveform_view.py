@@ -9,20 +9,24 @@ with channel labels on the left. Each channel waveform is first
 compressed by level runs (RLE), then drawn with a connect='pairs'
 PlotCurveItem, avoiding per-point addItem so that thousands to 20000
 points still zoom smoothly.
+
+The plot colors (background, foreground, axis pens, grid, and the
+per-channel palette) come from the theme tokens in ``core.theme``;
+``apply_theme`` re-colors an already visible plot at runtime.
 """
 import numpy as np
 import pyqtgraph as pg
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 
 from core.hal import current_backend
 from core.i18n import _
+from core.theme import get_theme, tokens
 
-CH_COLORS = [
-    "#e6194b", "#3cb44b", "#4363d8", "#f58231",
-    "#911eb4", "#42d4f4", "#f032e6", "#bfef45",
-]
 BASE = 1.0        # Baseline spacing between adjacent channels
 HEIGHT = 0.7      # Height of the high level above the baseline
+
+ZOOM_IN_FACTOR = 0.8    # Zoom in multiplies the x range by this factor
+ZOOM_OUT_FACTOR = 1.25  # Zoom out multiplies the x range by this factor
 
 
 class WaveformView(QWidget):
@@ -31,12 +35,32 @@ set_data(rate, samples) to update the display."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._x_full = (0.0, 1.0)
+
+        self.zoom_in_button = QPushButton(_("Zoom in"))
+        self.zoom_in_button.setToolTip(_("Zoom in on the time axis"))
+        self.zoom_out_button = QPushButton(_("Zoom out"))
+        self.zoom_out_button.setToolTip(_("Zoom out on the time axis"))
+        self.fit_button = QPushButton(_("Fit"))
+        self.fit_button.setToolTip(_("Fit to all data"))
+        self.zoom_in_button.clicked.connect(self.zoom_in)
+        self.zoom_out_button.clicked.connect(self.zoom_out)
+        self.fit_button.clicked.connect(self.fit_all)
+
+        strip = QHBoxLayout()
+        strip.setContentsMargins(0, 0, 0, 0)
+        strip.addWidget(self.zoom_in_button)
+        strip.addWidget(self.zoom_out_button)
+        strip.addWidget(self.fit_button)
+        strip.addStretch(1)
+
+        self.plot = pg.PlotWidget()
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.plot = pg.PlotWidget()
+        layout.addLayout(strip)
         layout.addWidget(self.plot)
 
-        self.plot.showGrid(x=True, y=True, alpha=0.3)
         self.plot.setLabel("bottom", _("Time"), units="s")
         self.plot.setLabel("left", _("Channel"))
         self.plot.setMouseEnabled(x=True, y=False)
@@ -45,7 +69,46 @@ set_data(rate, samples) to update the display."""
         self._curves = []
         self._channel_names = []
         self._n_channels = 0
+        self._ch_colors = list(tokens()["channels"])
+        self.apply_theme(get_theme())
         self.refresh_channels()
+
+    # ------------------------------------------------------------------
+    # Zoom controls
+    # ------------------------------------------------------------------
+    def zoom_in(self):
+        """Magnify the time axis around the current view center; the
+        channel axis stays unchanged."""
+        self.plot.getViewBox().scaleBy((ZOOM_IN_FACTOR, 1.0))
+
+    def zoom_out(self):
+        """Widen the time axis around the current view center; the
+        channel axis stays unchanged."""
+        self.plot.getViewBox().scaleBy((ZOOM_OUT_FACTOR, 1.0))
+
+    def fit_all(self):
+        """Restore the full captured time range (a valid empty view when
+        no data has been loaded)."""
+        self.plot.setXRange(self._x_full[0], self._x_full[1], padding=0)
+
+    def apply_theme(self, theme_id):
+        """Re-color the plot for a theme: background, foreground, axis
+        pens, grid, and the per-channel curve colors."""
+        tok = tokens(theme_id)
+        self._ch_colors = list(tok["channels"])
+
+        self.plot.setBackground(tok["plot_background"])
+        self.plot.plotItem.vb.setBackgroundColor(tok["plot_background"])
+        for name in ("left", "bottom", "top", "right"):
+            axis = self.plot.getAxis(name)
+            axis.setPen(pg.mkPen(tok["plot_foreground"]))
+            axis.setTextPen(pg.mkPen(tok["plot_foreground"]))
+            axis.setTickPen(pg.mkPen(tok["grid"]))
+        self.plot.showGrid(x=True, y=True, alpha=tok["grid_alpha"])
+
+        for ch, curve in enumerate(self._curves):
+            color = self._ch_colors[ch % len(self._ch_colors)]
+            curve.setPen(pg.mkPen(color, width=1.2))
 
     def refresh_channels(self):
         """Rebuild the channel curves and labels from the current backend."""
@@ -57,9 +120,10 @@ set_data(rate, samples) to update the display."""
         self._curves = []
         n = self._n_channels
         for ch in range(n):
+            color = self._ch_colors[ch % len(self._ch_colors)]
             curve = self.plot.plot(
                 [], [],
-                pen=pg.mkPen(CH_COLORS[ch % len(CH_COLORS)], width=1.2),
+                pen=pg.mkPen(color, width=1.2),
                 connect="pairs",
             )
             curve.setClipToView(True)
@@ -75,9 +139,16 @@ set_data(rate, samples) to update the display."""
         self.plot.setYRange(-0.2, BASE * (n - 1) + HEIGHT + 0.2)
 
     def retranslate_ui(self):
-        """Re-apply the active language to the axis labels."""
+        """Re-apply the active language to the axis labels and the zoom
+        buttons."""
         self.plot.setLabel("bottom", _("Time"), units="s")
         self.plot.setLabel("left", _("Channel"))
+        self.zoom_in_button.setText(_("Zoom in"))
+        self.zoom_in_button.setToolTip(_("Zoom in on the time axis"))
+        self.zoom_out_button.setText(_("Zoom out"))
+        self.zoom_out_button.setToolTip(_("Zoom out on the time axis"))
+        self.fit_button.setText(_("Fit"))
+        self.fit_button.setToolTip(_("Fit to all data"))
 
     @staticmethod
     def _square_points(x, levels):
@@ -125,6 +196,7 @@ and zoom to all the data."""
         if n == 0 or rate <= 0 or nch == 0:
             for curve in self._curves:
                 curve.setData([], [])
+            self._x_full = (0.0, 1.0)
             self.plot.setXRange(0, 1)
             return
         x = np.arange(n, dtype=np.float64) / rate
@@ -134,4 +206,5 @@ and zoom to all the data."""
             px, py = self._square_points(x, levels)
             y_base = BASE * (nch - 1 - ch)
             self._curves[ch].setData(px, py * HEIGHT + y_base)
+        self._x_full = (0.0, n / rate)
         self.plot.setXRange(0, n / rate, padding=0)

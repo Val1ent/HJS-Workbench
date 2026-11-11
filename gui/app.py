@@ -2,6 +2,10 @@
 """Qt bootstrap: create the application object, show the main window, and
 run the event loop.
 
+The saved manual theme (dark by default) is applied to the application
+right after it is created, so every window and dialog opens already
+themed; ``gui.theme.apply_theme`` switches it at runtime.
+
 On the very first run (no saved language) a modal language picker is shown
 before the main window; the chosen code is saved and applied, then the
 main window opens. The picker lists the native names and is not translated.
@@ -39,9 +43,11 @@ from core import updates
 from core.config import get as config_get, set as config_set
 from core.i18n import SUPPORTED_LANGUAGES, _, set_language
 from core.paths import resource_path
+from core.theme import get_theme
 
 from .main_window import MainWindow
 from .onboarding import show_onboarding_once
+from .theme import apply_theme
 from .version import __version__
 
 
@@ -277,6 +283,11 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("HJS-Workbench")
     app.setWindowIcon(QIcon(resource_path("assets", "app.ico")))
+
+    # Manual light/dark theme: read the saved identifier (dark default)
+    # and apply it before any window or dialog is shown, so the first
+    # paint is already themed.
+    apply_theme(app, get_theme())
 
     saved = config_get("language")
     if saved:

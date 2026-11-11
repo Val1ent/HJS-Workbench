@@ -45,6 +45,21 @@ class SerialLink:
         """Read up to ``count`` bytes from the port."""
         return self._ser.read(count)
 
+    def read_blocking(self, count, timeout):
+        """Read up to ``count`` bytes, blocking for at most ``timeout``
+        seconds. The timeout is written to the port only when its value
+        actually changes; repeated reads with the same value never
+        reconfigure the driver. Reconfiguring the port timeout on every
+        read drops bytes from a high-speed burst stream."""
+        try:
+            if self._ser.timeout != timeout:
+                self._ser.timeout = timeout
+            return self._ser.read(count)
+        except (serial.SerialException, OSError) as exc:
+            raise BackendConnectionError(
+                _("Cannot read from the serial port: {error}"
+                  ).format(error=exc)) from exc
+
     def write(self, data):
         """Write ``data`` to the port and return the byte count."""
         return self._ser.write(data)

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """Capture file support: .sr/.bin read, .sr write, rate parsing, unified open.
 
-The sample rate of serial captures and the .sr probe list come from the
-current device backend; the CH32 backend produces a byte-identical .sr
-file to the previous hard-coded output.
+The default sample rate of serial captures and the default .sr probe
+list come from the current device backend; ``write_sr`` accepts the
+actual recorded rate and writes it into the metadata. With the backend
+default rate the CH32 backend produces a byte-identical .sr file to the
+previous hard-coded output.
 """
 import os
 import zipfile
@@ -18,7 +20,14 @@ def serial_rate():
 
 
 def format_rate(rate):
-    """Format a rate in Hz the way sigrok metadata expects ('10 kHz')."""
+    """Format a rate in Hz the way sigrok metadata expects ('10 kHz').
+
+    Whole megahertz values are written as MHz ('1 MHz'), whole kilohertz
+    values as kHz ('10 kHz', '100 kHz', '500 kHz'); the default 10 kHz
+    output is unchanged.
+    """
+    if rate and rate % 1000000 == 0:
+        return "{} MHz".format(int(rate // 1000000))
     if rate and rate % 1000 == 0:
         return "{} kHz".format(int(rate // 1000))
     return "{} Hz".format(int(rate))
@@ -65,21 +74,25 @@ def read_bin(path, rate):
     return rate, list(data)
 
 
-def write_sr(path, data, channel_count=None, channel_names=None):
+def write_sr(path, data, channel_count=None, channel_names=None, rate=None):
     """Write a sigrok .sr zip archive.
 
     The probe list, sample rate, and unit size default to the current
-    backend's capabilities; ``channel_count``/``channel_names`` may be
-    passed explicitly but must still match the backend's real
+    backend's capabilities; ``channel_count``/``channel_names``/``rate``
+    may be passed explicitly but must still match the backend's real
     capabilities (any other value raises instead of being fabricated).
-    For the CH32 backend the default output is byte-identical to the
-    previous .sr format.
+    The ``rate`` argument is the sample rate the data was actually
+    recorded at; it is written into the metadata as-is. With no
+    explicit rate the backend default is used, so for the CH32 backend
+    the default output stays byte-identical to the previous .sr format.
     """
     caps = current_backend().capabilities
     count = caps.channel_count if channel_count is None else channel_count
     names = list(caps.channel_names if channel_names is None
                  else channel_names)
-    current_backend().validate_config(channels=count)
+    applied_rate = caps.sample_rate if rate is None else rate
+    current_backend().validate_config(sample_rate=applied_rate,
+                                      channels=count)
     if len(names) != count:
         raise ValueError(
             _("Channel names do not match the channel count ({names} names, "
@@ -99,7 +112,7 @@ def write_sr(path, data, channel_count=None, channel_names=None):
         + "".join("probe{index}={name}\n".format(
             index=i + 1, name=names[i]) for i in range(count))
         + "unitsize={unit}\n".format(unit=caps.unit_size)
-    ).format(count=count, rate=format_rate(caps.sample_rate))
+    ).format(count=count, rate=format_rate(applied_rate))
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("version", "2")
         z.writestr("metadata", metadata)

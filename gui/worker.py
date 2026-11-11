@@ -35,14 +35,15 @@ class AcquireWorker(QThread):
     succeeded = Signal(int, list)
     failed = Signal(str)
 
-    def __init__(self, fn, args=(), parent=None):
+    def __init__(self, fn, args=(), kwargs=None, parent=None):
         super().__init__(parent)
         self._fn = fn
         self._args = args
+        self._kwargs = kwargs or {}
 
     def run(self):
         try:
-            rate, samples = self._fn(*self._args)
+            rate, samples = self._fn(*self._args, **self._kwargs)
         except Exception as exc:
             self.failed.emit(readable_error(exc))
         else:
@@ -52,8 +53,9 @@ class AcquireWorker(QThread):
 # Throttle interval for continuous snapshots: the waveform refreshes
 # roughly every 150 ms, well inside the required 100-200 ms window.
 SNAPSHOT_INTERVAL = 0.15
-# The rolling window holds at most one second of 10 kHz data; the
-# capacity is raised by the GUI to its configured sample point count.
+# Rolling-window capacity in points; the GUI raises it to the configured
+# point count. At 10 kHz the default 20000 points cover two seconds, and
+# the equivalent time span shrinks at higher sample rates.
 CONTINUOUS_CAPACITY = 20000
 
 
@@ -63,8 +65,9 @@ class ContinuousWorker(QThread):
     The worker opens the current backend's connection exactly once, then
     repeatedly calls ``read_available()`` and appends the bytes to a
     fixed-capacity rolling deque. About every ``SNAPSHOT_INTERVAL``
-    seconds it emits ``snapshot(int, list)`` with the backend's declared
-    sample rate and a copy of the current window. Calling ``stop()``
+    seconds it emits ``snapshot(int, list)`` with the selected sample
+    rate and a copy of the current window; ``rate`` defaults to the
+    backend's declared rate when it is not passed. Calling ``stop()``
     ends the loop; the worker closes the connection (releasing the port)
     before the thread finishes.
     """
@@ -72,10 +75,12 @@ class ContinuousWorker(QThread):
     snapshot = Signal(int, list)
     failed = Signal(str)
 
-    def __init__(self, port, capacity=CONTINUOUS_CAPACITY, parent=None):
+    def __init__(self, port, capacity=CONTINUOUS_CAPACITY, rate=None,
+                 parent=None):
         super().__init__(parent)
         self._port = port
         self._capacity = max(1, int(capacity))
+        self._rate = rate
         self._stop_flag = False
         self._conn = None
 
@@ -92,7 +97,8 @@ class ContinuousWorker(QThread):
             self.failed.emit(readable_error(exc))
             return
         self._conn = conn
-        rate = backend.capabilities.sample_rate
+        rate = (backend.capabilities.sample_rate if self._rate is None
+                else self._rate)
         window = deque(maxlen=self._capacity)
         last = 0.0
         try:
