@@ -310,6 +310,12 @@ msgstr "Précédent"
 msgid "Burst"
 msgstr "Rafale"
 
+msgid "Burst upload timed out waiting for the BURST header line: received {got} bytes so far."
+msgstr "Délai d'attente de la ligne d'en-tête BURST lors du téléversement de la rafale : {got} octets reçus jusqu'à présent."
+
+msgid "Burst upload timed out: received {got} of {expected} bytes."
+msgstr "Délai du téléversement de la rafale : {got} octets reçus sur {expected}."
+
 msgid "CSV output path (Enter defaults to proto_diff_report.csv): "
 msgstr "Chemin du fichier CSV (Entrée = proto_diff_report.csv) : "
 
@@ -336,6 +342,9 @@ msgstr "Impossible de lire le fichier {path} : le fichier ne contient pas d'info
 
 msgid "Cannot read file {path}: {error}"
 msgstr "Impossible de lire le fichier {path} : {error}"
+
+msgid "Cannot read from the serial port: {error}"
+msgstr "Impossible de lire depuis le port série : {error}"
 
 msgid "Cannot save"
 msgstr "Enregistrement impossible"
@@ -367,8 +376,8 @@ msgstr "Mode de capture enregistré : {mode}"
 msgid "Capture starts in 2 seconds; confirm A15 is connected to D0 ..."
 msgstr "La capture démarre dans 2 secondes ; confirmez que A15 est connecté à D0 ..."
 
-msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the CH32 data port selected (bottom USB-FS port, not the debug port), is A15 looped back to D0, is the port free of other programs; then retry."
-msgstr "Capture expirée : {got} points reçus, {need} points requis.\nVérifiez : le port de données CH32 est-il sélectionné (port USB-FS inférieur, pas le port de débogage), A15 est-il bouclé sur D0, le port est-il libre de tout autre programme ; puis réessayez."
+msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the USB3 Type-A HS data port selected (not the debug port), is the board connected with a data-capable USB3 cable, is A15 looped back to D0, is the port free of other programs. The multi-rate and burst features require the High-Speed firmware; retry after these checks."
+msgstr "Capture expirée : {got} points reçus, {need} points requis.\nVérifiez : le port de données USB3 Type-A HS est-il sélectionné (pas le port de débogage), la carte est-elle connectée avec un câble USB3 compatible données, A15 est-il bouclé sur D0, le port est-il libre de tout autre programme. Les fonctions multi-débits et de rafale nécessitent le firmware High-Speed ; réessayez après ces vérifications."
 
 msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
 msgstr "La capture, la mesure et le décodage ne fonctionnent que sur le port de données ; un câble dans le port de débogage ne suffit pas."
@@ -451,6 +460,9 @@ msgstr "Appareil actuel : {name}"
 msgid "Current sample rate: {rate} Hz"
 msgstr "Fréquence d'échantillonnage actuelle : {rate} Hz"
 
+msgid "Cycles counted"
+msgstr "Cycles comptés"
+
 msgid "Dark"
 msgstr "Sombre"
 
@@ -481,6 +493,9 @@ msgstr "Longueurs différentes : comparaison des {n} points communs uniquement"
 msgid "Disconnect"
 msgstr "Déconnecter"
 
+msgid "Dual capture modes: realtime streaming plus a 712704-byte burst buffer with a parsed header upload."
+msgstr "Deux modes de capture : diffusion en temps réel plus un tampon de rafale de 712704 octets avec un téléversement d'en-tête analysé."
+
 msgid "Dual-waveform diff report (A=reference, B=device under test)"
 msgstr "Rapport de différence entre deux signaux (A=référence, B=appareil testé)"
 
@@ -498,6 +513,9 @@ msgstr "Entrez une fréquence (1-5000) pour un signal carré ; u = passer en UAR
 
 msgid "Enter a numeric frequency, or u / q"
 msgstr "Entrez une fréquence numérique, ou u / q"
+
+msgid "Every time axis and every saved .sr file now carries the sample rate that was actually recorded."
+msgstr "Chaque axe temporel et chaque fichier .sr enregistré portent désormais le taux d'échantillonnage réellement enregistré."
 
 msgid "Exited"
 msgstr "Quitté"
@@ -559,6 +577,9 @@ msgstr "Seuil de parasite us (Entrée = 200) : "
 msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
 msgstr "Couche d'abstraction matérielle : une interface de backend uniforme pour chaque carte de développement réelle."
 
+msgid "High pulse width"
+msgstr "Largeur d'impulsion haute"
+
 msgid "Import"
 msgstr "Importer"
 
@@ -607,17 +628,32 @@ msgstr "L'analyse en direct, la mesure en direct et la capture continue de l'int
 msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
 msgstr "Bouclez A15 vers D0 avec un cavalier pour capturer et décoder le signal généré."
 
+msgid "Low pulse width"
+msgstr "Largeur d'impulsion basse"
+
 msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
 msgstr "Assurez-vous qu'aucun autre programme (un moniteur série, une autre capture) n'occupe le port avant de connecter."
 
+msgid "Malformed burst header from the device: {header!r}"
+msgstr "En-tête de rafale mal formé provenant de l'appareil : {header!r}"
+
+msgid "Max period"
+msgstr "Période maximale"
+
 msgid "Measure"
 msgstr "Mesure"
+
+msgid "Min period"
+msgstr "Période minimale"
 
 msgid "Mode"
 msgstr "Mode"
 
 msgid "Most common bytes:"
 msgstr "Octets les plus fréquents :"
+
+msgid "Multi-rate capture: the CH32 board records at 10 kHz, 100 kHz, 500 kHz, or 1 MHz through the USB3 High-Speed data port."
+msgstr "Capture multi-débits : la carte CH32 enregistre à 10 kHz, 100 kHz, 500 kHz ou 1 MHz via le port de données USB3 haute vitesse."
 
 msgid "New device configuration entry in the CLI and the GUI."
 msgstr "Nouvelle entrée de configuration d'appareil dans la CLI et l'interface graphique."
@@ -682,6 +718,9 @@ msgstr "Nom du décodeur superposé (Entrée pour ignorer) : "
 msgid "PWM"
 msgstr "PWM"
 
+msgid "Period"
+msgstr "Période"
+
 msgid "Plug the board into a USB port and check the two USB connectors on the board."
 msgstr "Branchez la carte sur un port USB et vérifiez les deux connecteurs USB de la carte."
 
@@ -709,11 +748,11 @@ msgstr "Échec de la lecture :"
 msgid "Reading file..."
 msgstr "Lecture du fichier..."
 
-msgid "Realtime"
-msgstr "Temps réel"
-
 msgid "Ready"
 msgstr "Prêt"
+
+msgid "Realtime"
+msgstr "Temps réel"
 
 msgid "Received {n} bytes in {t:.1f} s"
 msgstr "Reçu {n} octets en {t:.1f} s"
@@ -745,9 +784,6 @@ msgstr "Changement de langue à chaud sans redémarrage."
 msgid "Sample rate (.bin only, Enter for auto): "
 msgstr "Fréquence d'échantillonnage (.bin uniquement, Entrée = auto) : "
 
-msgid "Sample rate: {rate} Hz, capture mode: {mode}"
-msgstr "Fréquence d'échantillonnage : {rate} Hz, mode de capture : {mode}"
-
 msgid "Sample rate in Hz (Enter defaults to {rate}): "
 msgstr "Fréquence d'échantillonnage en Hz (Entrée = {rate}) : "
 
@@ -762,6 +798,9 @@ msgstr "Fréquence d'échantillonnage {rate} Hz - {n} points - durée {ms:.1f} m
 
 msgid "Sample rate: {rate} Hz   Window: {n} points\n"
 msgstr "Fréquence d'échantillonnage : {rate} Hz   Fenêtre : {n} points\n"
+
+msgid "Sample rate: {rate} Hz, capture mode: {mode}"
+msgstr "Fréquence d'échantillonnage : {rate} Hz, mode de capture : {mode}"
 
 msgid "Sample-rate and capture-mode selectors in the GUI toolbar and the CLI settings menu, always driven by the current backend capabilities."
 msgstr "Sélecteurs de fréquence d'échantillonnage et de mode de capture dans la barre d'outils de l'interface graphique et le menu Paramètres de la CLI, toujours pilotés par les capacités du backend actuel."
@@ -849,6 +888,12 @@ msgstr "L'onglet Générateur de signaux pilote la vraie sortie firmware sur PA1
 
 msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz by default on the CH32 board, up to 1 MHz on the High-Speed port)."
 msgstr "Le signal affiche les canaux D0-D7 à la fréquence d'échantillonnage du backend (10 kHz par défaut sur la carte CH32, jusqu'à 1 MHz sur le port High-Speed)."
+
+msgid "The {name} backend does not support burst capture."
+msgstr "Le backend {name} ne prend pas en charge la capture de rafale."
+
+msgid "The {name} backend does not support the {command} command."
+msgstr "Le backend {name} ne prend pas en charge la commande {command}."
 
 msgid "Theme:"
 msgstr "Thème :"

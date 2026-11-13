@@ -310,6 +310,12 @@ msgstr "Zurück"
 msgid "Burst"
 msgstr "Burst"
 
+msgid "Burst upload timed out waiting for the BURST header line: received {got} bytes so far."
+msgstr "Timeout beim Burst-Upload beim Warten auf die BURST-Headerzeile: bisher {got} Bytes empfangen."
+
+msgid "Burst upload timed out: received {got} of {expected} bytes."
+msgstr "Timeout beim Burst-Upload: {got} von {expected} Bytes empfangen."
+
 msgid "CSV output path (Enter defaults to proto_diff_report.csv): "
 msgstr "CSV-Ausgabepfad (Enter = proto_diff_report.csv): "
 
@@ -336,6 +342,9 @@ msgstr "Datei {path} kann nicht gelesen werden: die Datei enthält keine Abtastr
 
 msgid "Cannot read file {path}: {error}"
 msgstr "Datei {path} kann nicht gelesen werden: {error}"
+
+msgid "Cannot read from the serial port: {error}"
+msgstr "Vom seriellen Port kann nicht gelesen werden: {error}"
 
 msgid "Cannot save"
 msgstr "Speichern nicht möglich"
@@ -367,8 +376,8 @@ msgstr "Aufnahmemodus gespeichert: {mode}"
 msgid "Capture starts in 2 seconds; confirm A15 is connected to D0 ..."
 msgstr "Die Aufzeichnung startet in 2 Sekunden; bestätigen Sie, dass A15 mit D0 verbunden ist ..."
 
-msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the CH32 data port selected (bottom USB-FS port, not the debug port), is A15 looped back to D0, is the port free of other programs; then retry."
-msgstr "Aufzeichnung abgelaufen: {got} Punkte erhalten, {need} Punkte benötigt.\nPrüfen Sie: Ist der CH32-Datenport gewählt (unterer USB-FS-Port, nicht der Debug-Port), ist A15 auf D0 zurückgeschleift, ist der Port frei von anderen Programmen; dann erneut versuchen."
+msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the USB3 Type-A HS data port selected (not the debug port), is the board connected with a data-capable USB3 cable, is A15 looped back to D0, is the port free of other programs. The multi-rate and burst features require the High-Speed firmware; retry after these checks."
+msgstr "Aufzeichnung abgelaufen: {got} Punkte erhalten, {need} Punkte benötigt.\nPrüfen Sie: Ist der USB3 Type-A HS-Datenport gewählt (nicht der Debug-Port), ist das Board mit einem datenfähigen USB3-Kabel verbunden, ist A15 auf D0 zurückgeschleift, ist der Port frei von anderen Programmen. Die Mehrfachraten- und Burst-Funktionen erfordern die High-Speed-Firmware; nach diesen Prüfungen erneut versuchen."
 
 msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
 msgstr "Aufzeichnung, Messung und Dekodierung funktionieren nur über den Datenport; ein Kabel im Debug-Port genügt nicht."
@@ -451,6 +460,9 @@ msgstr "Aktuelles Gerät: {name}"
 msgid "Current sample rate: {rate} Hz"
 msgstr "Aktuelle Abtastrate: {rate} Hz"
 
+msgid "Cycles counted"
+msgstr "Gezählte Zyklen"
+
 msgid "Dark"
 msgstr "Dunkel"
 
@@ -481,6 +493,9 @@ msgstr "Unterschiedliche Längen: es werden nur die {n} überlappenden Punkte ve
 msgid "Disconnect"
 msgstr "Trennen"
 
+msgid "Dual capture modes: realtime streaming plus a 712704-byte burst buffer with a parsed header upload."
+msgstr "Zwei Aufzeichnungsmodi: Echtzeit-Streaming plus ein 712704 Bytes großer Burst-Puffer mit geparster Header-Übertragung."
+
 msgid "Dual-waveform diff report (A=reference, B=device under test)"
 msgstr "Vergleichsbericht zweier Signalverläufe (A=Referenz, B=Prüfling)"
 
@@ -498,6 +513,9 @@ msgstr "Frequenz (1-5000) für ein Rechtecksignal eingeben; u = UART-Modus; q = 
 
 msgid "Enter a numeric frequency, or u / q"
 msgstr "Numerische Frequenz eingeben, oder u / q"
+
+msgid "Every time axis and every saved .sr file now carries the sample rate that was actually recorded."
+msgstr "Jede Zeitachse und jede gespeicherte .sr-Datei enthält jetzt die tatsächlich aufgezeichnete Abtastrate."
 
 msgid "Exited"
 msgstr "Beendet"
@@ -559,6 +577,9 @@ msgstr "Störimpuls-Schwelle us (Enter = 200): "
 msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
 msgstr "Hardware-Abstraktionsschicht: eine einheitliche Backend-Schnittstelle für jedes reale Entwicklungsboard."
 
+msgid "High pulse width"
+msgstr "High-Impulsbreite"
+
 msgid "Import"
 msgstr "Importieren"
 
@@ -607,17 +628,32 @@ msgstr "Live-Analyse, Live-Messung und die kontinuierliche GUI-Aufnahme folgen d
 msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
 msgstr "Schleifen Sie A15 mit einem Jumper auf D0 zurück, um das erzeugte Signal aufzuzeichnen und zu dekodieren."
 
+msgid "Low pulse width"
+msgstr "Low-Impulsbreite"
+
 msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
 msgstr "Stellen Sie vor dem Verbinden sicher, dass kein anderes Programm (ein serieller Monitor, eine andere Aufzeichnung) den Port belegt."
 
+msgid "Malformed burst header from the device: {header!r}"
+msgstr "Fehlerhafter Burst-Header vom Gerät: {header!r}"
+
+msgid "Max period"
+msgstr "Maximale Periode"
+
 msgid "Measure"
 msgstr "Messung"
+
+msgid "Min period"
+msgstr "Minimale Periode"
 
 msgid "Mode"
 msgstr "Modus"
 
 msgid "Most common bytes:"
 msgstr "Häufigste Bytes:"
+
+msgid "Multi-rate capture: the CH32 board records at 10 kHz, 100 kHz, 500 kHz, or 1 MHz through the USB3 High-Speed data port."
+msgstr "Mehrfachraten-Aufzeichnung: Das CH32-Board zeichnet mit 10 kHz, 100 kHz, 500 kHz oder 1 MHz über den USB3-High-Speed-Datenport auf."
 
 msgid "New device configuration entry in the CLI and the GUI."
 msgstr "Neuer Gerätekonfigurations-Eintrag in CLI und GUI."
@@ -682,6 +718,9 @@ msgstr "Name des Überlagerungs-Dekoders (Enter zum Überspringen): "
 msgid "PWM"
 msgstr "PWM"
 
+msgid "Period"
+msgstr "Periode"
+
 msgid "Plug the board into a USB port and check the two USB connectors on the board."
 msgstr "Stecken Sie das Board in einen USB-Port und prüfen Sie die beiden USB-Anschlüsse auf dem Board."
 
@@ -709,11 +748,11 @@ msgstr "Lesen fehlgeschlagen:"
 msgid "Reading file..."
 msgstr "Datei wird gelesen..."
 
-msgid "Realtime"
-msgstr "Echtzeit"
-
 msgid "Ready"
 msgstr "Bereit"
+
+msgid "Realtime"
+msgstr "Echtzeit"
 
 msgid "Received {n} bytes in {t:.1f} s"
 msgstr "{n} Bytes empfangen in {t:.1f} s"
@@ -745,9 +784,6 @@ msgstr "Sprachwechsel zur Laufzeit ohne Neustart."
 msgid "Sample rate (.bin only, Enter for auto): "
 msgstr "Abtastrate (nur .bin, Enter = automatisch): "
 
-msgid "Sample rate: {rate} Hz, capture mode: {mode}"
-msgstr "Abtastrate: {rate} Hz, Aufnahmemodus: {mode}"
-
 msgid "Sample rate in Hz (Enter defaults to {rate}): "
 msgstr "Abtastrate in Hz (Enter = {rate}): "
 
@@ -762,6 +798,9 @@ msgstr "Abtastrate {rate} Hz - {n} Punkte - Dauer {ms:.1f} ms"
 
 msgid "Sample rate: {rate} Hz   Window: {n} points\n"
 msgstr "Abtastrate: {rate} Hz   Fenster: {n} Punkte\n"
+
+msgid "Sample rate: {rate} Hz, capture mode: {mode}"
+msgstr "Abtastrate: {rate} Hz, Aufnahmemodus: {mode}"
 
 msgid "Sample-rate and capture-mode selectors in the GUI toolbar and the CLI settings menu, always driven by the current backend capabilities."
 msgstr "Abtastraten- und Aufnahmemodus-Auswahl in der GUI-Symbolleiste und im CLI-Einstellungsmenü, immer aus den Fähigkeiten des aktuellen Backends abgeleitet."
@@ -849,6 +888,12 @@ msgstr "Der Signalgenerator-Tab steuert die echte Firmware-Ausgabe auf PA15 übe
 
 msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz by default on the CH32 board, up to 1 MHz on the High-Speed port)."
 msgstr "Der Signalverlauf zeigt die Kanäle D0-D7 mit der Abtastrate des Backends (standardmäßig 10 kHz auf dem CH32-Board, bis zu 1 MHz am High-Speed-Port)."
+
+msgid "The {name} backend does not support burst capture."
+msgstr "Das {name}-Backend unterstützt keine Burst-Aufzeichnung."
+
+msgid "The {name} backend does not support the {command} command."
+msgstr "Das {name}-Backend unterstützt den Befehl {command} nicht."
 
 msgid "Theme:"
 msgstr "Design:"

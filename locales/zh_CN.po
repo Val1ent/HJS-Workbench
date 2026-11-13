@@ -310,6 +310,12 @@ msgstr "上一步"
 msgid "Burst"
 msgstr "突发脉冲"
 
+msgid "Burst upload timed out waiting for the BURST header line: received {got} bytes so far."
+msgstr "突发上传等待 BURST 头部行超时：目前已收到 {got} 字节。"
+
+msgid "Burst upload timed out: received {got} of {expected} bytes."
+msgstr "突发上传超时：已收到 {got} / {expected} 字节。"
+
 msgid "CSV output path (Enter defaults to proto_diff_report.csv): "
 msgstr "CSV 输出路径（回车默认 proto_diff_report.csv）："
 
@@ -336,6 +342,9 @@ msgstr "无法读取文件 {path}：文件缺少采样率信息。"
 
 msgid "Cannot read file {path}: {error}"
 msgstr "无法读取文件 {path}：{error}"
+
+msgid "Cannot read from the serial port: {error}"
+msgstr "无法从串口读取：{error}"
 
 msgid "Cannot save"
 msgstr "无法保存"
@@ -367,8 +376,8 @@ msgstr "采集模式已保存：{mode}"
 msgid "Capture starts in 2 seconds; confirm A15 is connected to D0 ..."
 msgstr "2 秒后开始采集；请确认 A15 已连接到 D0 ..."
 
-msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the CH32 data port selected (bottom USB-FS port, not the debug port), is A15 looped back to D0, is the port free of other programs; then retry."
-msgstr "采集超时：收到 {got} 点，需要 {need} 点。\n请检查：是否选择了 CH32 数据端口（下方 USB-FS 端口，不是调试端口）、A15 是否环接到 D0、端口是否被其他程序占用；然后重试。"
+msgid "Capture timed out: got {got} points, need {need} points.\nCheck: is the USB3 Type-A HS data port selected (not the debug port), is the board connected with a data-capable USB3 cable, is A15 looped back to D0, is the port free of other programs. The multi-rate and burst features require the High-Speed firmware; retry after these checks."
+msgstr "采集超时：收到 {got} 点，需要 {need} 点。\n请检查：是否选择了 USB3 Type-A HS 数据端口（不是调试端口），开发板是否用支持数据传输的 USB3 线缆连接，A15 是否环接到 D0，端口是否被其他程序占用。多速率和突发功能需要高速固件；完成这些检查后重试。"
 
 msgid "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough."
 msgstr "采集、测量与解码只能通过数据端口工作；只插调试端口的线缆是不够的。"
@@ -451,6 +460,9 @@ msgstr "当前设备：{name}"
 msgid "Current sample rate: {rate} Hz"
 msgstr "当前采样率：{rate} Hz"
 
+msgid "Cycles counted"
+msgstr "已计数周期"
+
 msgid "Dark"
 msgstr "深色"
 
@@ -481,6 +493,9 @@ msgstr "长度不同：仅比较重叠的 {n} 点"
 msgid "Disconnect"
 msgstr "断开连接"
 
+msgid "Dual capture modes: realtime streaming plus a 712704-byte burst buffer with a parsed header upload."
+msgstr "双采集模式：实时流式传输，加上一个 712704 字节的突发缓冲区，上传时带可解析的头部。"
+
 msgid "Dual-waveform diff report (A=reference, B=device under test)"
 msgstr "双波形对比报告（A=参考，B=被测设备）"
 
@@ -498,6 +513,9 @@ msgstr "输入频率（1-5000）输出方波；u = 切换到 UART；q = 退出\n
 
 msgid "Enter a numeric frequency, or u / q"
 msgstr "请输入数字频率，或按 u / q"
+
+msgid "Every time axis and every saved .sr file now carries the sample rate that was actually recorded."
+msgstr "每个时间轴和每个已保存的 .sr 文件现在都带有实际记录的采样率。"
 
 msgid "Exited"
 msgstr "已退出"
@@ -559,6 +577,9 @@ msgstr "毛刺阈值 us（回车默认 200）："
 msgid "Hardware abstraction layer: one uniform backend interface for every real development board."
 msgstr "硬件抽象层：所有真实开发板都通过统一的设备后端接口工作。"
 
+msgid "High pulse width"
+msgstr "高电平脉宽"
+
 msgid "Import"
 msgstr "导入"
 
@@ -607,17 +628,32 @@ msgstr "实时分析、实时测量和图形界面的连续采集遵循所选采
 msgid "Loop A15 back to D0 with a jumper wire to capture and decode the generated signal."
 msgstr "用跳线把 A15 环回接到 D0，即可采集并解码生成的信号。"
 
+msgid "Low pulse width"
+msgstr "低电平脉宽"
+
 msgid "Make sure no other program (a serial monitor, another capture run) holds the port before connecting."
 msgstr "连接前请确认没有其他程序（串口监视器、另一个采集进程）占用该端口。"
 
+msgid "Malformed burst header from the device: {header!r}"
+msgstr "设备发来的突发头部格式错误：{header!r}"
+
+msgid "Max period"
+msgstr "最大周期"
+
 msgid "Measure"
 msgstr "测量"
+
+msgid "Min period"
+msgstr "最小周期"
 
 msgid "Mode"
 msgstr "模式"
 
 msgid "Most common bytes:"
 msgstr "最常见字节："
+
+msgid "Multi-rate capture: the CH32 board records at 10 kHz, 100 kHz, 500 kHz, or 1 MHz through the USB3 High-Speed data port."
+msgstr "多速率采集：CH32 开发板通过 USB3 高速数据端口以 10 kHz、100 kHz、500 kHz 或 1 MHz 记录。"
 
 msgid "New device configuration entry in the CLI and the GUI."
 msgstr "CLI 和 GUI 新增设备配置入口。"
@@ -682,6 +718,9 @@ msgstr "叠加解码器名称（回车跳过）："
 msgid "PWM"
 msgstr "PWM"
 
+msgid "Period"
+msgstr "周期"
+
 msgid "Plug the board into a USB port and check the two USB connectors on the board."
 msgstr "将开发板插入 USB 接口，并查看板上的两个 USB 连接器。"
 
@@ -709,11 +748,11 @@ msgstr "读取失败："
 msgid "Reading file..."
 msgstr "正在读取文件..."
 
-msgid "Realtime"
-msgstr "实时"
-
 msgid "Ready"
 msgstr "就绪"
+
+msgid "Realtime"
+msgstr "实时"
 
 msgid "Received {n} bytes in {t:.1f} s"
 msgstr "在 {t:.1f} 秒内收到 {n} 字节"
@@ -745,9 +784,6 @@ msgstr "运行时可切换语言，无需重启。"
 msgid "Sample rate (.bin only, Enter for auto): "
 msgstr "采样率（仅 .bin，回车自动）："
 
-msgid "Sample rate: {rate} Hz, capture mode: {mode}"
-msgstr "采样率：{rate} Hz，采集模式：{mode}"
-
 msgid "Sample rate in Hz (Enter defaults to {rate}): "
 msgstr "采样率 Hz（回车默认 {rate}）："
 
@@ -762,6 +798,9 @@ msgstr "采样率 {rate} Hz - {n} 点 - 时长 {ms:.1f} ms"
 
 msgid "Sample rate: {rate} Hz   Window: {n} points\n"
 msgstr "采样率：{rate} Hz   窗口：{n} 点\n"
+
+msgid "Sample rate: {rate} Hz, capture mode: {mode}"
+msgstr "采样率：{rate} Hz，采集模式：{mode}"
 
 msgid "Sample-rate and capture-mode selectors in the GUI toolbar and the CLI settings menu, always driven by the current backend capabilities."
 msgstr "图形界面工具栏和命令行设置菜单中的采样率与采集模式选择器，始终由当前后端能力驱动。"
@@ -849,6 +888,12 @@ msgstr "信号发生器选项卡通过信号连接驱动 PA15 上的真实固件
 
 msgid "The waveform shows channels D0-D7 at the backend sample rate (10 kHz by default on the CH32 board, up to 1 MHz on the High-Speed port)."
 msgstr "波形以设备端采样率（CH32 开发板默认 10 kHz，高速端口最高 1 MHz）显示 D0-D7 通道。"
+
+msgid "The {name} backend does not support burst capture."
+msgstr "{name} 后端不支持突发采集。"
+
+msgid "The {name} backend does not support the {command} command."
+msgstr "{name} 后端不支持 {command} 命令。"
 
 msgid "Theme:"
 msgstr "主题："
