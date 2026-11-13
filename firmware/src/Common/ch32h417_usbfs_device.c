@@ -666,18 +666,3 @@ void USBFS_IRQHandler( void )
     }
 }
 
-/*********************************************************************
- * @fn      USBFS_Send_Resume
- *
- * @brief   Send usb k signal, Wake up usb host
- *
- * @return  none
- */
-void USBFS_Send_Resume( void )
-{
-    USBFSD->UDEV_CTRL ^= USBFS_UD_LOW_SPEED;
-    Delay_Ms( 8 );
-    USBFSD->UDEV_CTRL ^= USBFS_UD_LOW_SPEED;
-    Delay_Ms( 1 );
-}
-

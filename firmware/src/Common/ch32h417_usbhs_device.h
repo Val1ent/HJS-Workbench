@@ -48,9 +48,6 @@ extern "C" {
 #define USBHS_SPEED_FULL              ((uint8_t)(0x00))
 #define USBHS_SPEED_HIGH              ((uint8_t)(0x01))
 
-/* Self-test pattern packet: 4-byte packet counter + 508-byte pattern */
-#define DEF_HS_PATTERN_LEN            512
-
 /******************************************************************************/
 /* Variable Declaration */
 
@@ -82,7 +79,6 @@ extern volatile uint8_t USBHS_LineCoding[ 7 ];
 
 /* EP3 IN data source state, shared between ISR and main loop (volatile) */
 extern volatile uint8_t  USBHS_Ep3_Tx_Done;   /* 1: last packet sent, load next */
-extern volatile uint32_t USBHS_Pkt_Cnt;       /* self-test packet counter */
 
 /********************************************************************************/
 /* Function Declaration */
@@ -90,7 +86,6 @@ extern void USBHS_Device_Endp_Init ( void );
 extern void USBHS_Device_Init ( FunctionalState sta );
 extern void USBHS_RCC_Init ( FunctionalState sta );
 extern void USBHS_IRQHandler( void );
-extern void USBHS_Pattern_Send_Task( void );
 extern void USBHS_SendStream( const uint8_t *data, uint16_t len );
 
 #ifdef __cplusplus

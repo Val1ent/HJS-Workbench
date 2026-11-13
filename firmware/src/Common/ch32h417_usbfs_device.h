@@ -91,8 +91,6 @@ extern __attribute__ ((aligned(4))) uint8_t USBFS_EP3_Buf[ ];
 extern void USBFS_Device_Init( FunctionalState sta );
 extern void USBFS_Device_Endp_Init(void);
 extern void USBFS_RCC_Init(void);
-extern void USBFS_Send_Resume(void);
-extern void USBFS_Sleep_Wakeup_Operate(void);
 
 #ifdef __cplusplus
 }

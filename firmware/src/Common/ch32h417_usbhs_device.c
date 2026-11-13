@@ -52,10 +52,6 @@ volatile uint8_t USBHS_LineCoding[7] = {0x00, 0xC2, 0x01, 0x00, 0x00, 0x00, 0x08
 
 /* EP3 IN data source state. Written by the ISR, read by the main loop. */
 volatile uint8_t  USBHS_Ep3_Tx_Done = 0;
-volatile uint32_t USBHS_Pkt_Cnt = 0;
-
-/* Diagnostic counter of bytes received on EP2 OUT (stage 16A only). */
-volatile uint32_t USBHS_Ep2_Rx_Cnt = 0;
 
 /* Endpoint Buffer */
 __attribute__ ((aligned(4))) uint8_t USBHS_EP0_Buf[DEF_USBD_UEP0_SIZE];
@@ -163,7 +159,6 @@ void USBHS_Device_Init(FunctionalState sta)
         NVIC_EnableIRQ(USBHS_IRQn);
 
         /* Prime the first EP3 IN stream packet (done flag starts asserted) */
-        USBHS_Pkt_Cnt = 0;
         USBHS_Ep3_Tx_Done = 1;
     }
     else
@@ -171,41 +166,6 @@ void USBHS_Device_Init(FunctionalState sta)
         USBHSD->CONTROL = USBHS_UD_RST_SIE | USBHS_UD_RST_LINK;
         NVIC_DisableIRQ(USBHS_IRQn);
         USBHS_RCC_Init(DISABLE);
-    }
-}
-
-/*********************************************************************
- * @fn      USBHS_Pattern_Send_Task
- *
- * @brief   Reloads the EP3 IN endpoint with the next 512-byte self-test
- *          pattern packet. Packet layout:
- *            byte 0..3   little-endian packet counter (starts at 0)
- *            byte 4..511 pattern value (i & 0xFF)
- *          The pattern only verifies the High-Speed link; it is not a
- *          capture data source.
- *
- * @return  none
- */
-void USBHS_Pattern_Send_Task(void)
-{
-    if(USBHS_Ep3_Tx_Done)
-    {
-        uint16_t i;
-
-        USBHS_Ep3_Tx_Done = 0;
-
-        USBHS_EP3_Tx_Buf[0] = (uint8_t)(USBHS_Pkt_Cnt);
-        USBHS_EP3_Tx_Buf[1] = (uint8_t)(USBHS_Pkt_Cnt >> 8);
-        USBHS_EP3_Tx_Buf[2] = (uint8_t)(USBHS_Pkt_Cnt >> 16);
-        USBHS_EP3_Tx_Buf[3] = (uint8_t)(USBHS_Pkt_Cnt >> 24);
-        for(i = 4; i < DEF_HS_PATTERN_LEN; i++)
-        {
-            USBHS_EP3_Tx_Buf[i] = (uint8_t)i;
-        }
-        USBHS_Pkt_Cnt++;
-
-        USBHSD->UEP3_TX_LEN = DEF_HS_PATTERN_LEN;
-        USBHSD->UEP3_TX_CTRL = (USBHSD->UEP3_TX_CTRL & ~USBHS_UEP_T_RES_MASK) | USBHS_UEP_T_RES_ACK;
     }
 }
 
@@ -734,7 +694,6 @@ void USBHS_IRQHandler(void)
                 uint8_t cur_slot = USBHS_Ep2_Rx_Slot;
                 USBHSD->UEP2_RX_CTRL &= ~USBHS_UEP_R_DONE;
                 USBHSD->UEP2_RX_CTRL ^= USBHS_UEP_R_TOG_DATA1;
-                USBHS_Ep2_Rx_Cnt += USBHSD->UEP2_RX_LEN;
                 Signal_HandleRx(&USBHS_EP2_Rx_Buf[cur_slot * DEF_USB_EP2_HS_SIZE],
                                 USBHSD->UEP2_RX_LEN);
                 USBHS_Ep2_Rx_Slot = (uint8_t)(cur_slot ^ 1);
