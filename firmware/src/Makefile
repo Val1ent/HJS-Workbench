@@ -4,12 +4,11 @@
 #
 #   make            # build the Full-Speed realtime firmware (default)
 #   make HS=1       # build the USB High-Speed burst firmware
-#   make SQUARE=1   # build the fixed 1 kHz square-wave firmware
 #   make clean      # remove the build/ output folder
 #   make HS=1 clean # remove the build_hs/ output folder
 #
-# HS=1 and SQUARE=1 are alternative application variants and must not be
-# combined in one invocation.
+# HS=1 is the alternative application variant and must not be combined with
+# other variant flags in one invocation.
 #
 # The toolchain ships with MounRiver Studio (RISC-V Embedded GCC12).
 # Override the prefix if needed:   make CROSS=riscv-none-elf-
@@ -47,14 +46,6 @@ else
 # Default Full-Speed build: exclude the High-Speed sources
 C_SRCS  := $(filter-out Common/ch32h417_usbhs_device.c Common/usb_desc_hs.c,$(C_SRCS))
 TARGET   = $(BUILD)/HJS-Workbench
-endif
-
-# Build the square-wave firmware by swapping in the alternative hardware.c
-# (default Full-Speed path only; not combinable with HS=1)
-ifeq ($(SQUARE),1)
-CFLAGS += -D SQUARE_BUILD
-C_SRCS := $(filter-out Common/hardware.c,$(C_SRCS))
-C_SRCS += alternative_square_hardware.c
 endif
 
 # Optional reproducible-build pin: fix the embedded __DATE__/__TIME__ strings

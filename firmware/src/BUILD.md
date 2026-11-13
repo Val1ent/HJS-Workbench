@@ -16,7 +16,6 @@ firmware files in `firmware/` from these sources.
 | `Startup/` | Startup assembly (`startup_ch32h417_v3f.S`) |
 | `Ld/V3F/Link_v3f.ld` | Linker script for the QingKe V3F core |
 | `Makefile` | Standalone command-line build (no IDE required) |
-| `alternative_square_hardware.c` | Square-wave version of `hardware.c` (used automatically by `make SQUARE=1`) |
 | `hs_link_hardware.c` | USB High-Speed burst capture main loop (used by `make HS=1`) |
 | `Common/ch32h417_usbhs_device.[ch]` | USB High-Speed device stack on the USBHSD register block (PB8/PB9) |
 | `Common/usb_desc_hs.[ch]` | HS/FS dual configuration descriptors, device qualifier, BOS descriptor |
@@ -36,7 +35,6 @@ extension). Use the toolchain that ships with MounRiver Studio:
 cd firmware/src
 
 make            # build the Full-Speed realtime firmware -> build/HJS-Workbench.hex/.bin
-make SQUARE=1   # build the 1 kHz square-wave firmware
 make HS=1       # build the USB High-Speed burst firmware -> build_hs/HJS-Workbench-HS.hex/.bin
 make clean      # remove the build/ output folder
 make HS=1 clean # remove the build_hs/ output folder
@@ -45,8 +43,8 @@ make HS=1 clean # remove the build_hs/ output folder
 `make` produces `build/HJS-Workbench.hex` and `build/HJS-Workbench.bin`
 (the Full-Speed realtime firmware); `make HS=1` produces
 `build_hs/HJS-Workbench-HS.hex` and `build_hs/HJS-Workbench-HS.bin`
-(the High-Speed burst firmware). `HS=1` and `SQUARE=1` select
-alternative application variants and must not be combined in one invocation.
+(the High-Speed burst firmware). HS=1 selects the alternative application
+variant and must not be combined with other variant flags.
 
 If your toolchain uses a different prefix, override it:
 
@@ -186,7 +184,8 @@ The signal is generated in the TIM2 interrupt every 100 us
 100 us tick quantizes the duty-cycle resolution (for example a 1 kHz PWM
 period is 10 ticks, so the duty steps in 10% increments). The square and
 UART modes behave exactly as before. The 1-5000 Hz limit comes from the
-10 kHz tick rate, and `Capture_Tick` (the sampling path) is unchanged.
+10 kHz tick rate. The DMA-driven sampling path runs independently and is
+unaffected by signal generation.
 
 ## GUI / CLI signal control
 
