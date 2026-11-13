@@ -106,6 +106,23 @@ jobs:
         run: python -m gui --check
       - name: Build GUI bundle
         run: pyinstaller packaging/gui.spec --noconfirm
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $iscc = Get-Command ISCC -ErrorAction SilentlyContinue
+          if (-not $iscc) { choco install innosetup --limit-output --no-progress -y }
+      - name: Build Windows Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: python packaging/build_installer.py
+      - name: Upload Windows Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJS-Workbench-Setup-${{ needs.ensure-release.outputs.version }}.exe" --clobber
       - name: Build CLI executable
         run: pyinstaller packaging/cli.spec --noconfirm
       - name: Package GUI bundle (Linux/macOS)

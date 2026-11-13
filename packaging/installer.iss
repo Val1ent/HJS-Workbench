@@ -11,13 +11,21 @@
 ;   - dist/HJSWorkbench-GUI produced by:  pyinstaller packaging/gui.spec --noconfirm
 ;
 ; Build from the repository root with:
-;   ISCC.exe packaging\installer.iss
+;   python packaging/build_installer.py
+; which reads the version from gui/version.py and passes it to the
+; compiler as /DMyAppVersion=<version>.
 ;
-; The Setup executable lands in dist/HJS-Workbench-Setup-0.6.2.exe.
+; The Setup executable lands in dist/HJS-Workbench-Setup-<version>.exe.
 
 #define MyAppName "HJS-Workbench"
-#define MyAppVersion "0.6.2"
-; Keep MyAppVersion in sync with the released application version.
+#ifndef MyAppVersion
+  ; Fallback only. The normal build passes the real version via
+  ; ISCC /DMyAppVersion=<version>, sourced from gui/version.py.
+  ; Direct "ISCC installer.iss" without the switch uses this value.
+  #define MyAppVersion "0.6.2"
+#endif
+; The version is supplied by the build script from gui/version.py, so this
+; fallback does not need to be synchronized by hand for a release.
 #define MyAppPublisher "HJS"
 #define MyAppExeName "HJSWorkbench-GUI.exe"
 #define MyAppOnedir "HJSWorkbench-GUI"

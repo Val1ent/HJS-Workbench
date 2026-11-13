@@ -44,13 +44,29 @@ not installed by the project itself; install it from
 https://jrsoftware.org/isinfo.php first.
 
 1. Build the GUI onedir as above.
-2. From the repository root, compile the installer script:
+2. From the repository root, build the installer:
+
+   ```
+   python packaging/build_installer.py
+   ```
+
+   The script reads the version from `gui/version.py` and passes it to the
+   Inno Setup compiler as `/DMyAppVersion=<version>`, so the installer
+   version never has to be edited by hand. It locates `ISCC.exe` through
+   the `ISCC` environment variable, then `PATH`, then the default Inno
+   Setup 6 installation directories.
+
+   A direct compile is still supported:
 
    ```
    ISCC.exe packaging\installer.iss
    ```
 
-3. Artifact: `dist/HJS-Workbench-Setup-0.6.2.exe`. The Setup asks for
+   Without `/DMyAppVersion` the installer script falls back to the default
+   version string it defines, which can be older than `gui/version.py`.
+
+3. Artifact: `dist/HJS-Workbench-Setup-<version>.exe`, where `<version>` is
+   the version in `gui/version.py`. The Setup asks for
    its own language first (English, ChineseSimplified,
    ChineseTraditional, French, German via the Inno `[Languages]`
    section), then shows the license and install-directory pages, installs
@@ -81,7 +97,8 @@ release.
   (en, fr, de, zh_CN, zh_TW) and verifies each non-English catalog
   translates a known msgid away from the English source.
 - GUI headless start: set `QT_QPA_PLATFORM=offscreen`, launch the
-  executable, and confirm it stays alive; its version reads 0.6.2.
+  executable, and confirm it stays alive; its version matches
+  `gui/version.py`.
 
 ## Other platforms
 

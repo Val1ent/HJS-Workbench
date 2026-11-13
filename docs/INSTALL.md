@@ -15,8 +15,8 @@ the application's first run, and changeable later from Settings).
 
 ## Windows Setup (GUI)
 
-1. Download `HJS-Workbench-Setup-0.6.2.exe` from the release page and
-   run it.
+1. Download `HJS-Workbench-Setup-<version>.exe` from the release page and
+   run it; the file name shown on the release page is authoritative.
 2. The first prompt is the installer language: English, 简体中文,
    繁體中文, Français, or Deutsch.
 3. The welcome and license pages follow, then the install-directory
@@ -72,11 +72,17 @@ on all three platforms.
 
 - **Windows Setup executable**: Inno Setup 6 (free installer compiler,
   https://jrsoftware.org/isinfo.php). With `dist/HJSWorkbench-GUI` built
-  by PyInstaller, compile from the repository root:
+  by PyInstaller, build from the repository root:
 
   ```
-  ISCC.exe packaging\installer.iss
+  python packaging/build_installer.py
   ```
+
+  The script reads the version from `gui/version.py` and passes it to the
+  compiler, so the Setup executable carries the same version as the
+  application. A direct `ISCC.exe packaging\installer.iss` run without the
+  version switch uses the fallback version defined in the installer
+  script.
 
 - **Per-platform CLI binaries**: PyInstaller builds on each platform
   (`pyinstaller packaging/cli.spec --noconfirm`); PyInstaller cannot
