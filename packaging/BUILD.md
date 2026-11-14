@@ -79,8 +79,8 @@ https://jrsoftware.org/isinfo.php first.
    Without `/DMyAppVersion` the installer script falls back to the default
    version string it defines, which can be older than `gui/version.py`.
 
-3. Artifact: `dist/HJS-Workbench-Setup-<version>.exe`, where `<version>` is
-   the version in `gui/version.py`. The Setup asks for
+3. Artifact: `dist/HJS-Workbench-Setup-<version>-windows-x86_64.exe`, where
+   `<version>` is the version in `gui/version.py`. The Setup asks for
    its own language first (English, ChineseSimplified,
    ChineseTraditional, French, German via the Inno `[Languages]`
    section), then shows the license and install-directory pages, installs

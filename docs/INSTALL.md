@@ -15,8 +15,9 @@ the application's first run, and changeable later from Settings).
 
 ## Windows Setup (GUI)
 
-1. Download `HJS-Workbench-Setup-<version>.exe` from the release page and
-   run it; the file name shown on the release page is authoritative.
+1. Download `HJS-Workbench-Setup-<version>-windows-x86_64.exe` from the
+   release page and run it; the file name shown on the release page is
+   authoritative.
 2. The first prompt is the installer language: English, 简体中文,
    繁體中文, Français, or Deutsch.
 3. The welcome and license pages follow, then the install-directory

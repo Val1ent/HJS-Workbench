@@ -15,7 +15,8 @@
 ; which reads the version from gui/version.py and passes it to the
 ; compiler as /DMyAppVersion=<version>.
 ;
-; The Setup executable lands in dist/HJS-Workbench-Setup-<version>.exe.
+; The Setup executable lands in
+; dist/HJS-Workbench-Setup-<version>-windows-x86_64.exe.
 
 #define MyAppName "HJS-Workbench"
 #ifndef MyAppVersion
@@ -40,7 +41,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..\dist
-OutputBaseFilename=HJS-Workbench-Setup-{#MyAppVersion}
+OutputBaseFilename=HJS-Workbench-Setup-{#MyAppVersion}-windows-x86_64
 SetupIconFile=..\assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 LicenseFile=..\LICENSE

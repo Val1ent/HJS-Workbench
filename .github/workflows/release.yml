@@ -133,7 +133,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJS-Workbench-Setup-${{ needs.ensure-release.outputs.version }}.exe" --clobber
+          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJS-Workbench-Setup-${{ needs.ensure-release.outputs.version }}-windows-x86_64.exe" --clobber
       - name: Build CLI executable
         run: pyinstaller packaging/cli.spec --noconfirm
       - name: Package GUI bundle (Linux/macOS)
@@ -145,7 +145,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          python -c "import shutil; shutil.make_archive('dist/HJSWorkbench-GUI-${{ needs.ensure-release.outputs.version }}', 'zip', root_dir='dist', base_dir='HJSWorkbench-GUI')"
+          python -c "import shutil; shutil.make_archive('dist/HJSWorkbench-GUI-${{ needs.ensure-release.outputs.version }}-windows-x86_64', 'zip', root_dir='dist', base_dir='HJSWorkbench-GUI')"
       - name: Rename CLI (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
@@ -155,7 +155,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Rename-Item "dist/HJSWorkbench-CLI.exe" "HJSWorkbench-CLI-${{ needs.ensure-release.outputs.version }}.exe"
+          Rename-Item "dist/HJSWorkbench-CLI.exe" "HJSWorkbench-CLI-${{ needs.ensure-release.outputs.version }}-windows-x86_64.exe"
       - name: Upload CLI asset (Linux/macOS)
         if: runner.os != 'Windows'
         env:
@@ -176,11 +176,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJSWorkbench-CLI-${{ needs.ensure-release.outputs.version }}.exe" --clobber
+          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJSWorkbench-CLI-${{ needs.ensure-release.outputs.version }}-windows-x86_64.exe" --clobber
       - name: Upload GUI asset (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJSWorkbench-GUI-${{ needs.ensure-release.outputs.version }}.zip" --clobber
+          gh release upload "${{ needs.ensure-release.outputs.tag }}" "dist/HJSWorkbench-GUI-${{ needs.ensure-release.outputs.version }}-windows-x86_64.zip" --clobber
