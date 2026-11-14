@@ -44,6 +44,18 @@ static uint8_t  sig_burst_half = 0;   /* 0=high half, 1=low half */
 /* Forced level: sig_mode=4 keeps PA15 at sig_force_level. */
 volatile uint8_t sig_force_level = 1;
 
+/* ===== Pattern playback (sig_mode 5): loadable arbitrary waveform ===== */
+#define PATTERN_MAX 8000
+static uint8_t pattern_buf[PATTERN_MAX];          /* level bytes, one per 100us tick */
+static volatile uint16_t pattern_len = 0;        /* valid bytes in pattern_buf */
+static volatile uint16_t pattern_pos = 0;        /* next tick index while playing */
+
+/* Binary ingestion state for the W<len> command. While pat_rx_active is 1,
+   every received byte is stored raw and ASCII parsing is suspended. */
+static volatile uint8_t  pat_rx_active = 0;
+static volatile uint16_t pat_rx_need = 0;
+static volatile uint16_t pat_rx_got = 0;
+
 /* ===== PC command reception (USB endpoint 2) ===== */
 __attribute__((aligned(4))) uint8_t cmd_dma_buf[64];   /* endpoint 2 DMA landing buffer */
 static char cmd_line[32];
@@ -103,12 +115,46 @@ void Signal_Init(void)
     g.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_Init(GPIOC, &g);
     GPIOC->BCR = GPIO_Pin_6;
+
+    /* Pattern playback outputs: PC7..PC11 push-pull, start driven low.
+       bit1..bit5 of each pattern byte map to these five pins. */
+    g.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9
+               | GPIO_Pin_10 | GPIO_Pin_11;
+    g.GPIO_Speed = GPIO_Speed_Very_High;
+    g.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_Init(GPIOC, &g);
+    GPIOC->BCR = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9
+               | GPIO_Pin_10 | GPIO_Pin_11;
 }
 
 static void set_line(uint8_t v)
 {
     if(v) GPIOA->BSHR = GPIO_Pin_15;
     else  GPIOA->BCR  = GPIO_Pin_15;
+}
+
+/* Drive one pattern byte onto the six GPO pins. bit0 -> PA15,
+   bit1..bit5 -> PC7..PC11. Pin state is changed through BSHR/BCR so a
+   single register write sets or clears a pin atomically. */
+static void pattern_output(uint8_t b)
+{
+    static const uint16_t pc_pin[5] = {
+        GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_9, GPIO_Pin_10, GPIO_Pin_11
+    };
+    uint16_t set_mask = 0;
+    uint16_t rst_mask = 0;
+    uint8_t k;
+
+    if(b & 0x01) GPIOA->BSHR = GPIO_Pin_15;
+    else         GPIOA->BCR  = GPIO_Pin_15;
+
+    for(k = 0; k < 5; k++)
+    {
+        if(b & (uint8_t)(1 << (k + 1))) set_mask |= pc_pin[k];
+        else                            rst_mask |= pc_pin[k];
+    }
+    if(set_mask) GPIOC->BSHR = set_mask;
+    if(rst_mask) GPIOC->BCR  = rst_mask;
 }
 
 void Signal_Start(void)
@@ -125,6 +171,23 @@ void Signal_Tick(void)
     /* Forced-level mode: the command already set PA15; nothing to do */
     if(sig_mode == 4)
     {
+        return;
+    }
+
+    /* Pattern playback: emit one stored byte per 100us tick. When the
+       whole pattern is consumed, drive every GPO low and hold it. */
+    if(sig_mode == 5)
+    {
+        if(pattern_pos >= pattern_len)
+        {
+            pattern_output(0);
+            sig_active = 0;
+            sig_mode = 4;
+            sig_force_level = 0;
+            return;
+        }
+        pattern_output(pattern_buf[pattern_pos]);
+        pattern_pos++;
         return;
     }
 
@@ -223,9 +286,26 @@ void Signal_Tick(void)
 /* Endpoint 2 received a packet (called in the USB ISR): process char by char immediately */
 int Signal_HandleRx(const uint8_t *data, uint16_t len)
 {
-    uint16_t i;
+    uint16_t i = 0;
     int ret = -1;
-    for(i = 0; i < len; i++)
+
+    /* Binary pattern ingestion takes priority and suspends ASCII parsing. */
+    if(pat_rx_active)
+    {
+        while(i < len && pat_rx_got < pat_rx_need)
+            pattern_buf[pat_rx_got++] = data[i++];
+        if(pat_rx_got >= pat_rx_need)
+        {
+            pat_rx_active = 0;
+            pattern_len = pat_rx_need;
+            ret = 6;
+        }
+        /* Bytes beyond the declared length in this packet are ignored; the
+           host must send the K command in a separate packet. */
+        return ret;
+    }
+
+    for(; i < len; i++)
     {
         char c = (char)data[i];
         if(c == 'u' || c == 'U')
@@ -254,10 +334,23 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
             sig_mode = 4;
             sig_force_level = 0;
             sig_active = 0;
-            set_line(0);
+            pattern_output(0);   /* drive every GPO low, not just PA15 */
             last_cmd = 4;
             cmd_len = 0;
             ret = 4;
+        }
+        else if(c == 'K' || c == 'k')
+        {
+            /* K starts playback only when a pattern is loaded */
+            if(pattern_len > 0)
+            {
+                sig_mode = 5;
+                pattern_pos = 0;
+                sig_active = 1;
+                last_cmd = 5;
+                cmd_len = 0;
+                ret = 5;
+            }
         }
         else if(c == 'S' || c == 's')
         {
@@ -302,10 +395,18 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
             cmd_line[cmd_len++] = 'R';
             ret = 5;
         }
+        else if(c == 'W' || c == 'w')
+        {
+            /* W<len>: collect the length, arm binary ingestion at newline */
+            cmd_len = 0;
+            cmd_line[cmd_len++] = 'W';
+            ret = 6;
+        }
         else if((c >= '0' && c <= '9') || c == ',')
         {
-            if(cmd_len > 0 && (cmd_line[0] == 'S' || cmd_line[0] == 'P' || cmd_line[0] == 'B' || cmd_line[0] == 'R')
-               && cmd_len < sizeof(cmd_line) - 1)
+            if(cmd_len > 0 && (cmd_line[0] == 'S' || cmd_line[0] == 'P'
+               || cmd_line[0] == 'B' || cmd_line[0] == 'R'
+               || cmd_line[0] == 'W') && cmd_len < sizeof(cmd_line) - 1)
                 cmd_line[cmd_len++] = c;
         }
         else if(c == '\r' || c == '\n')
@@ -322,6 +423,28 @@ int Signal_HandleRx(const uint8_t *data, uint16_t len)
                     while(*p >= '0' && *p <= '9') { r = r * 10 + (uint32_t)(*p - '0'); p++; }
                     if(Capture_SetRate(r) == 0) ret = 5;
                     else ret = -1;
+                }
+                else if(cmd_line[0] == 'W' || cmd_line[0] == 'w')
+                {
+                    /* W<len>: validate the length and arm raw ingestion */
+                    uint32_t plen = 0;
+                    const char *p = cmd_line + 1;
+                    while(*p >= '0' && *p <= '9')
+                    {
+                        plen = plen * 10 + (uint32_t)(*p - '0');
+                        p++;
+                    }
+                    if(plen >= 1 && plen <= PATTERN_MAX)
+                    {
+                        pat_rx_need = (uint16_t)plen;
+                        pat_rx_got = 0;
+                        pat_rx_active = 1;
+                        ret = 6;
+                    }
+                    else
+                    {
+                        ret = -1;
+                    }
                 }
                 else
                 {
