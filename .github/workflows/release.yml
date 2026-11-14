@@ -25,7 +25,10 @@ on:
         type: choice
         options:
           - all
+          - windows-x86_64
+          - linux-x86_64
           - macos-arm64
+          - macos-x86_64
 
 permissions:
   contents: write
@@ -78,10 +81,27 @@ jobs:
       - name: Choose the matrix entries
         id: set
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.build_target }}" = "macos-arm64" ]; then
-            echo 'matrix=[{"runner":"macos-latest","asset_os":"macos","arch":"arm64","target":"macos-arm64"}]' >> "$GITHUB_OUTPUT"
+          all_matrix='[{"runner":"ubuntu-24.04","asset_os":"linux","arch":"x86_64","target":"linux-x86_64"},{"runner":"windows-latest","asset_os":"windows","arch":"x86_64","target":"windows-x86_64"},{"runner":"macos-latest","asset_os":"macos","arch":"arm64","target":"macos-arm64"},{"runner":"macos-26-intel","asset_os":"macos","arch":"x86_64","target":"macos-x86_64"}]'
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            case "${{ inputs.build_target }}" in
+              windows-x86_64)
+                echo 'matrix=[{"runner":"windows-latest","asset_os":"windows","arch":"x86_64","target":"windows-x86_64"}]' >> "$GITHUB_OUTPUT"
+                ;;
+              linux-x86_64)
+                echo 'matrix=[{"runner":"ubuntu-24.04","asset_os":"linux","arch":"x86_64","target":"linux-x86_64"}]' >> "$GITHUB_OUTPUT"
+                ;;
+              macos-arm64)
+                echo 'matrix=[{"runner":"macos-latest","asset_os":"macos","arch":"arm64","target":"macos-arm64"}]' >> "$GITHUB_OUTPUT"
+                ;;
+              macos-x86_64)
+                echo 'matrix=[{"runner":"macos-26-intel","asset_os":"macos","arch":"x86_64","target":"macos-x86_64"}]' >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                echo "matrix=$all_matrix" >> "$GITHUB_OUTPUT"
+                ;;
+            esac
           else
-            echo 'matrix=[{"runner":"ubuntu-24.04","asset_os":"linux","arch":"x86_64","target":"linux-x86_64"},{"runner":"windows-latest","asset_os":"windows","arch":"x86_64","target":"windows-x86_64"},{"runner":"macos-latest","asset_os":"macos","arch":"arm64","target":"macos-arm64"},{"runner":"macos-26-intel","asset_os":"macos","arch":"x86_64","target":"macos-x86_64"}]' >> "$GITHUB_OUTPUT"
+            echo "matrix=$all_matrix" >> "$GITHUB_OUTPUT"
           fi
 
   build:
