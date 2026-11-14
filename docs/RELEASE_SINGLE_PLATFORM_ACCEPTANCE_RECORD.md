@@ -91,7 +91,50 @@ with `--clobber`; its content is unchanged and its 12,141-byte size is
 preserved. The asset names follow the naming contract used by
 scripts/install.sh.
 
-## 6. Notes
+## 6. Independent download and binary verification
+
+The metadata checks above do not prove that the published bytes are native
+arm64. A separate verification therefore downloaded both assets from the
+release and inspected their actual binary headers, without relying on the
+workflow's green badge.
+
+### 6.1 Method and network findings
+
+A single full-file request stalled on the GitHub download host and returned
+no data. The signed URL redirects to release-assets.githubusercontent.com.
+Requests using the `Range` header returned HTTP 206, so the download was
+split into 64 KiB blocks with retries, which completed reliably. The CLI was
+fetched with one sequential worker; the larger GUI archive was fetched with
+eight concurrent workers, each owning a disjoint byte range and writing at
+its own offsets into a preallocated file.
+
+### 6.2 CLI result
+
+The downloaded CLI measured exactly 7,744,208 bytes, matching the API. Its
+Mach-O header decoded as:
+
+    magic    0xFEEDFACF   (64-bit Mach-O)
+    cputype  0x0100000C   (ARM64)
+    filetype 2            (MH_EXECUTE)
+    ncmds    18
+
+### 6.3 GUI result
+
+The downloaded archive measured exactly 47,445,139 bytes and opened as a
+valid gzip tar with 591 entries, confirming the compressed stream is
+complete. The PyInstaller launcher at
+`HJSWorkbench-GUI/HJSWorkbench-GUI` (5,831,424 bytes) is a 64-bit Mach-O
+with magic 0xFEEDFACF and cputype 0x0100000C (ARM64). Every Mach-O binary
+in the bundle was then audited: all 121 Mach-O files report cputype
+0x0100000C, and no x86_64 or other-architecture binary is present.
+
+### 6.4 Conclusion
+
+Both refreshed macOS arm64 assets are native ARM64 executables, not x86_64
+binaries and not mixed-architecture bundles, and their byte counts match
+the release API. They are accepted for Apple Silicon hardware.
+
+## 7. Notes
 
 The single-platform input currently offers `macos-arm64` as the only
 restricted target alongside `all`. Adding more targets later only requires
