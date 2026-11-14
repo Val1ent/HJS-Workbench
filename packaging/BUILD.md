@@ -56,11 +56,25 @@ https://jrsoftware.org/isinfo.php first.
    the `ISCC` environment variable, then `PATH`, then the default Inno
    Setup 6 installation directories.
 
+   The script also ensures the two Chinese message files are present in the
+   compiler's `Languages` directory. Inno Setup 6.7 moved the Simplified and
+   Traditional Chinese translations to its unofficial translations set, so a
+   default installation no longer contains them. The script copies
+   `ChineseSimplified.isl` and `ChineseTraditional.isl` from
+   `packaging/languages/` only when they are missing and never overwrites an
+   existing file. A package-manager launcher found on `PATH` is resolved to
+   the installation it starts, so the files go into the `Languages`
+   directory the compiler reads them from.
+
    A direct compile is still supported:
 
    ```
    ISCC.exe packaging\installer.iss
    ```
+
+   That run bypasses the build script, so on a default Inno Setup 6.7
+   installation the two files must be copied by hand from
+   `packaging/languages/` into the compiler's `Languages` folder first.
 
    Without `/DMyAppVersion` the installer script falls back to the default
    version string it defines, which can be older than `gui/version.py`.

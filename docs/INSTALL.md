@@ -80,9 +80,13 @@ on all three platforms.
 
   The script reads the version from `gui/version.py` and passes it to the
   compiler, so the Setup executable carries the same version as the
-  application. A direct `ISCC.exe packaging\installer.iss` run without the
-  version switch uses the fallback version defined in the installer
-  script.
+  application. It also provisions the two Chinese message files in the
+  compiler's `Languages` directory, copying them from `packaging/languages/`
+  when they are missing and never overwriting an existing file. A direct
+  `ISCC.exe packaging\installer.iss` run bypasses that step, so on a default
+  Inno Setup 6.7 installation copy both files into the compiler's
+  `Languages` folder by hand first. Without the version switch, a direct run
+  uses the fallback version defined in the installer script.
 
 - **Per-platform CLI binaries**: PyInstaller builds on each platform
   (`pyinstaller packaging/cli.spec --noconfirm`); PyInstaller cannot

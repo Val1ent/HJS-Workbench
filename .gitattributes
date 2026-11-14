@@ -1,0 +1,5 @@
+# The Inno Setup message files are vendored byte for byte from upstream.
+# Mark them so Git never converts their line endings, in either direction:
+# the copies in the repository stay identical to the tag they came from.
+packaging/languages/*.isl -text
+packaging/languages/Inno-Setup-License.txt -text

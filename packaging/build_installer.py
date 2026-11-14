@@ -26,6 +26,8 @@ GUI_ONEDIR = REPO_ROOT / "dist" / "HJSWorkbench-GUI"
 GUI_EXE_NAME = "HJSWorkbench-GUI.exe"
 SETUP_NAME_TEMPLATE = "HJS-Workbench-Setup-{version}.exe"
 INNO_SETUP_URL = "https://jrsoftware.org/isinfo.php"
+VENDOR_LANGUAGE_DIR = REPO_ROOT / "packaging" / "languages"
+VENDORED_LANGUAGES = ("ChineseSimplified.isl", "ChineseTraditional.isl")
 
 _VERSION_ASSIGNMENT = re.compile(r'__version__\s*=\s*["\']([^"\']+)["\']')
 _VERSION_SHAPE = re.compile(r"^\d+\.\d+\.\d+$")
@@ -34,6 +36,19 @@ _COMMON_ISCC_PATHS = (
     Path("C:/Program Files (x86)/Inno Setup 6/ISCC.exe"),
     Path("C:/Program Files/Inno Setup 6/ISCC.exe"),
 )
+
+# Files every real Inno Setup installation keeps next to ISCC.exe. A package
+# manager may put a launcher shim on PATH instead, and the compiler resolves
+# its own support files, including the Languages folder, relative to the
+# installation the shim launches rather than relative to the shim.
+_COMPILER_SUPPORT_FILES = ("Default.isl", "ISPPBuiltins.iss")
+
+
+def _is_compiler_directory(directory):
+    """Return True when directory holds the compiler's own support files."""
+    return all(
+        (directory / name).is_file() for name in _COMPILER_SUPPORT_FILES
+    )
 
 
 class BuildError(Exception):
@@ -76,7 +91,10 @@ def find_iscc():
     """Return the Inno Setup compiler executable.
 
     Lookup order: the ISCC environment variable, the PATH, then the default
-    Inno Setup 6 installation directories.
+    Inno Setup 6 installation directories. A package-manager launcher found
+    on the PATH is resolved to the installation it starts, because the
+    compiler reads its own support files, including the Languages folder,
+    from the installation rather than from the launcher.
     """
     env_value = os.environ.get("ISCC")
     if env_value:
@@ -84,26 +102,69 @@ def find_iscc():
         if candidate.is_file():
             return candidate
         print(
-            "warning: the ISCC environment variable points to {}, which is "
-            "not a file; continuing with the remaining lookup steps.".format(
-                candidate
-            ),
+            "warning: the ISCC environment variable points to {}, which "
+            "is not a file; continuing with the remaining lookup "
+            "steps.".format(candidate),
             file=sys.stderr,
         )
 
+    candidates = []
     on_path = shutil.which("ISCC")
     if on_path:
-        return Path(on_path)
+        candidates.append(Path(on_path))
+    candidates.extend(path for path in _COMMON_ISCC_PATHS if path.is_file())
 
-    for candidate in _COMMON_ISCC_PATHS:
-        if candidate.is_file():
+    if not candidates:
+        raise BuildError(
+            "Inno Setup 6 was not found. Install it from {} and run this "
+            "script again, or set the ISCC environment variable to the full "
+            "path of ISCC.exe.".format(INNO_SETUP_URL)
+        )
+
+    for candidate in candidates:
+        if _is_compiler_directory(candidate.parent):
             return candidate
+    return candidates[0]
 
-    raise BuildError(
-        "Inno Setup 6 was not found. Install it from {} and run this script "
-        "again, or set the ISCC environment variable to the full path of "
-        "ISCC.exe.".format(INNO_SETUP_URL)
-    )
+
+def ensure_language_files(iscc):
+    """Make the vendored Chinese message files available to the compiler.
+
+    Inno Setup 6.7 moved the Simplified and Traditional Chinese translations
+    to the unofficial translations set, so a default installation no longer
+    contains them in its Languages directory. Each vendored file is copied
+    next to the compiler only when it is missing; an existing file is left
+    untouched, so a future Inno Setup that ships the translation again, or a
+    copy installed by the user, always wins.
+    """
+    compiler_languages = iscc.parent / "Languages"
+    for name in VENDORED_LANGUAGES:
+        target = compiler_languages / name
+        if target.exists():
+            print("Language file: {} (already present)".format(target))
+            continue
+
+        source = VENDOR_LANGUAGE_DIR / name
+        if not source.is_file():
+            raise BuildError(
+                "The vendored language file {} is missing. Restore it in the "
+                "repository before building the installer.".format(source)
+            )
+
+        try:
+            compiler_languages.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        except OSError as exc:
+            raise BuildError(
+                "Cannot copy {} to the Inno Setup Languages directory {}: "
+                "{}. If the directory is not writable, run this script with "
+                "the permissions needed to write there, or copy the file by "
+                "hand and run the script again.".format(
+                    source, compiler_languages, exc.strerror or exc
+                )
+            ) from None
+
+        print("Language file: {} copied to {}".format(source, target))
 
 
 def check_gui_bundle(onedir=GUI_ONEDIR):
@@ -188,6 +249,8 @@ def build():
 
     check_gui_bundle()
     print("GUI bundle: {}".format(GUI_ONEDIR))
+
+    ensure_language_files(iscc)
 
     return compile_installer(iscc, version)
 
