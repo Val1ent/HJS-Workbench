@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # 1. Slow SPI (demo: SCK=1 kHz, CPOL=0/CPHA=0, MSB first)
 # ======================================================================

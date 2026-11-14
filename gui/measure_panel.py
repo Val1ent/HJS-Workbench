@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 """Measure panel: per-channel frequency/duty overview + main channel detailed
 metrics. The channel count and names come from the current backend."""
-import core
-
 from PySide6.QtWidgets import (
-    QFormLayout, QGroupBox, QHeaderView, QLabel, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget,
+    QFormLayout,
+    QGroupBox,
+    QHeaderView,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
+
+import core
 from core.i18n import _
 
 # (display label msgid, data key, unit symbol). Keys and units stay English;
@@ -97,7 +103,7 @@ current backend's capabilities."""
     def _update_detail(self, result):
         self._last_result = result
         if result is None:
-            for _key, (label, _unit) in self.detail_labels.items():
+            for label, _unit in self.detail_labels.values():
                 label.setText(_("insufficient signal"))
             return
         for _title, key, _unit in DETAIL_FIELDS:

@@ -5,6 +5,7 @@ from ..model import channel_bits
 from ..registry import register
 from ..segments import build_wave, edges_of
 
+
 # ======================================================================
 # Servo PWM / PPM (same wire: 20 ms single-servo PWM or multi-channel
 # PPM frame)
@@ -20,7 +21,6 @@ def decode_servo(samples, rate, ch=0):
          >= 4 channels.
     """
     bits = channel_bits(samples, ch)
-    n = len(bits)
     dt = 1.0 / rate
     edges = edges_of(bits)
     # Keep only real edges (drop the initial-level point added by edges_of)

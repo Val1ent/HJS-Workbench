@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # Slow I2C (SCL=D1, SDA=D0; idle SCL=1, SDA=1; MSB first, 9 bits per
 # group)

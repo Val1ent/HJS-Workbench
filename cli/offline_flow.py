@@ -15,6 +15,7 @@ from core.decoders.servo import decode_servo
 from core.i18n import _
 from core.model import channel_bits
 from core.segments import build_wave, pulse_widths
+
 from . import console
 
 

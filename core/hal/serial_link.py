@@ -13,8 +13,8 @@ Every low-level port error is translated into the readable
 import serial
 from serial.tools import list_ports
 
-from .base import BackendConnectionError
 from ..i18n import _
+from .base import BackendConnectionError
 
 
 def list_serial_ports():

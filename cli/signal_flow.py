@@ -12,6 +12,7 @@ The port is opened at the current backend's declared signal baud rate.
 import core
 from core.hal import BackendConnectionError
 from core.i18n import _
+
 from . import console
 
 

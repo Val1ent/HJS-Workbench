@@ -5,6 +5,7 @@ from ..model import channel_bits
 from ..registry import register
 from ..segments import build_wave, pulse_widths
 
+
 # ======================================================================
 # Infrared remote NEC (active low)
 # ======================================================================

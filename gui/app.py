@@ -35,12 +35,18 @@ import sys
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QDialogButtonBox, QLabel, QPushButton,
+    QApplication,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QPushButton,
     QVBoxLayout,
 )
 
 from core import updates
-from core.config import get as config_get, set as config_set
+from core.config import get as config_get
+from core.config import set as config_set
 from core.i18n import SUPPORTED_LANGUAGES, _, set_language
 from core.paths import resource_path
 from core.theme import get_theme
@@ -129,8 +135,9 @@ def run_check(argv):
     (``--check-output PATH``, or a fixed name in the system temporary
     directory). No window is created and no display is needed.
     """
-    import core
     import tempfile
+
+    import core
 
     output_path = _check_output_path(argv)
     if not output_path:
@@ -171,7 +178,7 @@ def run_check(argv):
         if name.endswith(".sr"):
             try:
                 rate, samples = core.acquire_file(path)
-            except Exception as exc:  # noqa: BLE001 - readable report
+            except Exception as exc:
                 check_line(f"examples/{name}", False, str(exc))
                 continue
             check_line(f"examples/{name}", bool(rate) and len(samples) > 0,
@@ -180,9 +187,9 @@ def run_check(argv):
                 square_samples = samples
         else:
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     nonempty = sum(1 for line in f if line.strip())
-            except Exception as exc:  # noqa: BLE001 - readable report
+            except Exception as exc:
                 check_line(f"examples/{name}", False, str(exc))
                 continue
             check_line(f"examples/{name}", nonempty > 0,
@@ -214,7 +221,7 @@ def run_check(argv):
         try:
             samples = deck["make"](deck_rate)
             events = deck["decode"](samples, deck_rate)
-        except Exception as exc:  # noqa: BLE001 - readable report
+        except Exception as exc:
             check_line(f"decoder {name}", False, str(exc))
             continue
         check_line(f"decoder {name}", len(events) > 0,
@@ -230,7 +237,7 @@ def run_check(argv):
             backend.validate_config(sample_rate=caps.sample_rate,
                                     unit_size=caps.unit_size,
                                     channels=caps.channel_count)
-        except ValueError as exc:  # noqa: BLE001 - readable report
+        except ValueError as exc:
             problems_backend.append(f"own values rejected: {exc}")
         for label, kwargs in (
                 ("sample rate", {"sample_rate": caps.sample_rate + 1}),
@@ -249,7 +256,7 @@ def run_check(argv):
                     f"{caps.sample_rate} Hz"
                     + ("" if not problems_backend else
                        "; " + "; ".join(problems_backend))))
-    except Exception as exc:  # noqa: BLE001 - readable report
+    except Exception as exc:
         check_line("device backend", False, str(exc))
 
     # Compiled catalogs load from the frozen locales directory.

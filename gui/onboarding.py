@@ -9,10 +9,16 @@ own. The same five-step content is re-openable at any time as the Quick
 Start Guide (toolbar button in the GUI, menu entry in the CLI).
 """
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from core.config import get as config_get, set as config_set
+from core.config import get as config_get
+from core.config import set as config_set
 from core.guide import GUIDE_STEPS
 from core.i18n import _
 

@@ -6,6 +6,7 @@ from collections import deque
 import core
 from core.hal import BackendConnectionError
 from core.i18n import _
+
 from . import console
 
 WINDOW = 3000

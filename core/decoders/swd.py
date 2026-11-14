@@ -18,7 +18,6 @@ with valid parity and ACK=OK.
 from ..events import event
 from ..model import channel_bits
 from ..registry import register
-from ..segments import build_wave
 
 
 def _even_parity(bits):

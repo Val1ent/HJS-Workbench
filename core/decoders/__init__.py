@@ -4,14 +4,46 @@
 Importing this subpackage imports all nineteen protocol modules in
 registration order and thereby populates the DECKS registry.
 """
-from . import (  # noqa: F401
-    nec, servo, i2c, spi, stepper, encoder, rc5, ultrasonic, fan,
-    dht11, onewire, swd, modbus, wiegand, hd44780, sirc, ds1302,
-    manchester, nmea,
+from . import (
+    dht11,
+    ds1302,
+    encoder,
+    fan,
+    hd44780,
+    i2c,
+    manchester,
+    modbus,
+    nec,
+    nmea,
+    onewire,
+    rc5,
+    servo,
+    sirc,
+    spi,
+    stepper,
+    swd,
+    ultrasonic,
+    wiegand,
 )
 
 __all__ = [
-    "nec", "servo", "i2c", "spi", "stepper", "encoder", "rc5",
-    "ultrasonic", "fan", "dht11", "onewire", "swd", "modbus",
-    "wiegand", "hd44780", "sirc", "ds1302", "manchester", "nmea",
+    "dht11",
+    "ds1302",
+    "encoder",
+    "fan",
+    "hd44780",
+    "i2c",
+    "manchester",
+    "modbus",
+    "nec",
+    "nmea",
+    "onewire",
+    "rc5",
+    "servo",
+    "sirc",
+    "spi",
+    "stepper",
+    "swd",
+    "ultrasonic",
+    "wiegand",
 ]

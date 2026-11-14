@@ -10,9 +10,11 @@ front-ends:
     list_serial_ports, acquire_serial, acquire_burst,
     current_backend, list_backends, select_backend
 """
-from . import decoders  # noqa: F401
-from . import hal  # noqa: F401
-from . import session  # noqa: F401
+from . import (
+    decoders,  # noqa: F401
+    hal,  # noqa: F401
+    session,  # noqa: F401
+)
 from .capture import acquire_burst, acquire_serial, list_serial_ports
 from .files import acquire_file, read_bin, read_sr, write_sr
 from .hal import (
@@ -29,21 +31,21 @@ from .uart import best_packet, scan_frames, uart_decode
 
 __all__ = [
     "DECKS",
-    "channel_bits",
-    "read_sr",
-    "read_bin",
-    "write_sr",
-    "acquire_file",
-    "scan_frames",
-    "best_packet",
-    "uart_decode",
-    "measure",
-    "list_serial_ports",
-    "acquire_serial",
     "acquire_burst",
+    "acquire_file",
+    "acquire_serial",
+    "best_packet",
+    "channel_bits",
     "current_backend",
     "get_backend",
     "list_backends",
+    "list_serial_ports",
+    "measure",
+    "read_bin",
+    "read_sr",
     "register_backend",
+    "scan_frames",
     "select_backend",
+    "uart_decode",
+    "write_sr",
 ]

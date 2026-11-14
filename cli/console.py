@@ -3,7 +3,7 @@
 import os
 
 import core
-from core.hal import BackendConnectionError, current_backend
+from core.hal import current_backend
 from core.i18n import _
 
 

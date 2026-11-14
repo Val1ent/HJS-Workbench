@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # 4. Infrared RC-5 remote (Philips, 14-bit frames, biphase encoding)
 # ======================================================================

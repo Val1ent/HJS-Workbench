@@ -5,15 +5,26 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QFileDialog, QLabel, QMainWindow,
-    QMessageBox, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTabWidget,
-    QToolBar, QWidget,
+    QApplication,
+    QComboBox,
+    QFileDialog,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QSpinBox,
+    QSplitter,
+    QTabWidget,
+    QToolBar,
+    QWidget,
 )
 
 import core
 from core.files import format_rate
 from core.i18n import _
 from core.paths import resource_path
+
 from .decoder_panel import DecoderPanel
 from .measure_panel import MeasurePanel
 from .onboarding import QuickStartDialog

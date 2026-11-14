@@ -1,0 +1,47 @@
+# Ruff configuration for HJS-Workbench.
+# Target the supported Python version. 120 matches the project's existing
+# line wrapping while still catching genuinely unreadable long lines.
+target-version = "py312"
+line-length = 120
+
+[lint]
+# Safe, high-value rules only:
+#   E    pycodestyle errors
+#   F    pyflakes (unused imports/variables)
+#   I    import sorting
+#   PERF performance
+#   RUF  sorted __all__ and unused noqa directives
+#   UP   pyupgrade (modern syntax)
+select = [
+    "E",
+    "F",
+    "I",
+    "PERF",
+    "RUF022",
+    "RUF100",
+    "UP",
+]
+# Kept out on purpose:
+#   E501      long lines are complete gettext msgid strings (guide and
+#             release notes); wrapping them would break message extraction
+#   E701/E702 the compact one-line statements are an intentional style
+#   E731      short lambdas assigned to a local name read clearly here
+#   PERF401   the flagged loops build frames/conditional marks where a
+#             comprehension would be less readable; they are not hot paths
+#   UP009     the utf-8 encoding declaration is an intentional project style
+#   UP031     printf-style formatting is used by the gettext i18n rules
+#   UP032     .format is required; f-strings are forbidden inside _()
+ignore = [
+    "E501",
+    "E701",
+    "E702",
+    "E731",
+    "PERF401",
+    "UP009",
+    "UP031",
+    "UP032",
+]
+
+[lint.per-file-ignores]
+# The test suite defines fakes and intentionally triggers exception paths.
+"tests/*" = ["F841"]

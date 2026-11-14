@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # 3. Quadrature encoder A/B/Z (x4 counting, Z-phase zero reset)
 # ======================================================================

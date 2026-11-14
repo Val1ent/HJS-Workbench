@@ -18,8 +18,14 @@ main window.
   change is visible immediately without a restart.
 """
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QFormLayout, QHBoxLayout, QLabel,
-    QPushButton, QVBoxLayout,
+    QApplication,
+    QComboBox,
+    QDialog,
+    QFormLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
 )
 
 from core.config import set as config_set

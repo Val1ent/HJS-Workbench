@@ -10,7 +10,8 @@ Adding a new real board later means adding one backend module, importing
 it here, and calling :func:`register_backend`; the pickers in the CLI
 and the GUI list it automatically.
 """
-from ..config import get as config_get, set as config_set
+from ..config import get as config_get
+from ..config import set as config_set
 from ..i18n import _
 from .base import (
     BackendConnectionError,

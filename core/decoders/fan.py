@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # 6. 4-wire fan speed (TACH 2 pulses per revolution, falling-edge
 #    interval -> RPM)

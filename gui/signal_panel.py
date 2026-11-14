@@ -13,8 +13,15 @@ is offered, and the port is released when the panel is closed or the
 window exits.
 """
 from PySide6.QtWidgets import (
-    QComboBox, QFormLayout, QHBoxLayout, QLabel, QMessageBox,
-    QPushButton, QSpinBox, QVBoxLayout, QWidget,
+    QComboBox,
+    QFormLayout,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 import core
@@ -282,7 +289,7 @@ class SignalPanel(QWidget):
         line = self.command_line(mode_id, freq, duty, count)
         try:
             self._conn.write(line)
-        except Exception as exc:  # noqa: BLE001 - readable report
+        except Exception as exc:
             QMessageBox.warning(
                 self, _("Send failed"), str(exc).strip())
             return

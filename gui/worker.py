@@ -7,8 +7,8 @@ keeps one HAL connection open and streams throttled snapshots of the
 incoming data until it is asked to stop; it contains no serial code of
 its own and only talks to the current backend's DeviceConnection.
 """
-from collections import deque
 import time
+from collections import deque
 
 from PySide6.QtCore import QThread, Signal
 
@@ -105,7 +105,7 @@ class ContinuousWorker(QThread):
             while not self._stop_flag:
                 try:
                     chunk = conn.read_available()
-                except Exception as exc:  # noqa: BLE001 - readable report
+                except Exception as exc:
                     self.failed.emit(readable_error(exc))
                     break
                 if chunk:

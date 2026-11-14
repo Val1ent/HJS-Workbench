@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # 5. HC-SR04 ultrasonic ranging (TRIG triggers, ECHO high time ->
 #    distance)

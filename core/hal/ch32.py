@@ -24,6 +24,7 @@ the USB-C Full-Speed port stays a supported baseline.
 """
 import time
 
+from ..i18n import _
 from .base import (
     BackendConnectionError,
     DeviceBackend,
@@ -31,7 +32,6 @@ from .base import (
     DeviceConnection,
 )
 from .serial_link import SerialLink, list_serial_ports
-from ..i18n import _
 
 CH32_CAPABILITIES = DeviceCapabilities(
     backend_id="ch32",

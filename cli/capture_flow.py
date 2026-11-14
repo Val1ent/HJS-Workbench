@@ -7,6 +7,7 @@ from collections import Counter
 import core
 from core.hal import BackendConnectionError
 from core.i18n import _
+
 from . import console
 
 POINTS = 3000

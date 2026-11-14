@@ -43,7 +43,7 @@ def config_path():
 def load():
     """Load the config as a dict; a missing file or bad JSON returns {}."""
     try:
-        with open(config_path(), "r", encoding="utf-8") as f:
+        with open(config_path(), encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, ValueError):
         return {}

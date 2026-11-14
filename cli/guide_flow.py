@@ -5,6 +5,7 @@ onboarding wizard, re-openable at any time from the main menu.
 """
 from core.guide import GUIDE_STEPS
 from core.i18n import _
+
 from . import console
 
 

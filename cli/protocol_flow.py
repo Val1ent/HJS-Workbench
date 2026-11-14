@@ -16,6 +16,7 @@ import core
 from core.hal import BackendConnectionError
 from core.i18n import _
 from core.registry import print_events
+
 from . import console
 
 WINDOW = 3000

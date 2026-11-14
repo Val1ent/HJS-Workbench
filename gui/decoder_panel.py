@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 """Decode panel: built-in UART text decoding (first channel, 8N1) + the 9
 registered decoders, results listed in a table."""
-import core
-
 from PySide6.QtWidgets import (
-    QComboBox, QHBoxLayout, QLabel, QMessageBox, QPushButton,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
+
+import core
 from core.i18n import _
 
 

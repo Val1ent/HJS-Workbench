@@ -4,6 +4,7 @@ from ..events import event
 from ..model import channel_bits
 from ..registry import register
 
+
 # ======================================================================
 # 2. Stepper motor STEP/DIR (each STEP rising edge = one step, DIR
 #    high = forward)

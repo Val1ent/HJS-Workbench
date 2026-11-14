@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 """Main menu loop and navigation for the unified CLI."""
 from core import updates
-from core.config import get as config_get, set as config_set
+from core.config import get as config_get
+from core.config import set as config_set
 from core.i18n import SUPPORTED_LANGUAGES, _, get_language, set_language
 
-from . import console  # noqa: F401  (helpers are used by every sub-flow)
-from . import capture_flow, device_flow, guide_flow, live_analyzer
-from . import live_measure, offline_flow, protocol_flow, session_flow
-from . import signal_flow
+from . import (
+    capture_flow,
+    console,  # noqa: F401  (helpers are used by every sub-flow)
+    device_flow,
+    guide_flow,
+    live_analyzer,
+    live_measure,
+    offline_flow,
+    protocol_flow,
+    session_flow,
+    signal_flow,
+)
 from .console_setup import enable_utf8_console
 from .version import __version__
 

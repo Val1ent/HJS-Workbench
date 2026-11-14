@@ -66,7 +66,7 @@ def parse_po(path):
     """
     entries = []
     by_id = {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         lines = f.readlines()
 
     msgid_parts = None

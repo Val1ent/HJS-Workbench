@@ -11,7 +11,8 @@ identifier is persisted in the user config under ``theme``. A missing or
 unknown identifier always falls back to the default and never raises.
 """
 
-from .config import get as _config_get, set as _config_set
+from .config import get as _config_get
+from .config import set as _config_set
 
 DEFAULT_THEME = "dark"
 CONFIG_KEY = "theme"

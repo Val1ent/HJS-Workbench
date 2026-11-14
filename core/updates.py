@@ -7,7 +7,8 @@ notes: the first run records the current version as seen and shows nothing.
 The caller renders the notes and calls ``mark_seen`` only after they have
 actually been shown, so the prompt fires exactly once per version.
 """
-from core.config import get as config_get, set as config_set
+from core.config import get as config_get
+from core.config import set as config_set
 
 from .release_notes import RELEASE_NOTES
 
