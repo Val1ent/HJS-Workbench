@@ -18,6 +18,14 @@ on:
         required: true
         default: "v0.6.2"
         type: string
+      build_target:
+        description: "Limit which platform build runs (all builds every matrix entry)"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - macos-arm64
 
 permissions:
   contents: write
@@ -71,16 +79,21 @@ jobs:
           - runner: ubuntu-24.04
             asset_os: linux
             arch: x86_64
+            target: linux-x86_64
           - runner: windows-latest
             asset_os: windows
             arch: x86_64
+            target: windows-x86_64
           - runner: macos-latest
             asset_os: macos
             arch: arm64
+            target: macos-arm64
           - runner: macos-26-intel
             asset_os: macos
             arch: x86_64
+            target: macos-x86_64
     runs-on: ${{ matrix.runner }}
+    if: github.event_name != 'workflow_dispatch' || inputs.build_target == 'all' || inputs.build_target == matrix.target
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
