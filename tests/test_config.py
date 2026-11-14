@@ -1,25 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tests for persistent user configuration, isolated to a temp directory."""
-import os
-import tempfile
 import unittest
 
 from core import config
+from tests._isolation import IsolatedConfig
 
 
-class ConfigTest(unittest.TestCase):
-    def setUp(self):
-        self._old_appdata = os.environ.get("APPDATA")
-        self.tmp = tempfile.TemporaryDirectory()
-        os.environ["APPDATA"] = self.tmp.name
-
-    def tearDown(self):
-        if self._old_appdata is None:
-            os.environ.pop("APPDATA", None)
-        else:
-            os.environ["APPDATA"] = self._old_appdata
-        self.tmp.cleanup()
-
+class ConfigTest(IsolatedConfig, unittest.TestCase):
     def test_missing_file_loads_empty(self):
         self.assertEqual(config.load(), {})
         self.assertIsNone(config.get("anything"))

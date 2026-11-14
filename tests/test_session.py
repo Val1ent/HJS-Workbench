@@ -1,25 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tests for the sample-rate/mode policy, isolated to a temp directory."""
-import os
-import tempfile
 import unittest
 
 from core import config, session
+from tests._isolation import IsolatedConfig
 
 
-class SessionTest(unittest.TestCase):
-    def setUp(self):
-        self._old_appdata = os.environ.get("APPDATA")
-        self.tmp = tempfile.TemporaryDirectory()
-        os.environ["APPDATA"] = self.tmp.name
-
-    def tearDown(self):
-        if self._old_appdata is None:
-            os.environ.pop("APPDATA", None)
-        else:
-            os.environ["APPDATA"] = self._old_appdata
-        self.tmp.cleanup()
-
+class SessionTest(IsolatedConfig, unittest.TestCase):
     def test_save_and_effective_sample_rate(self):
         session.save_sample_rate(500000)
         self.assertEqual(session.effective_sample_rate(), 500000)
