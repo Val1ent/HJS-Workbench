@@ -69,31 +69,29 @@ jobs:
         run: |
           gh release upload "${{ steps.meta.outputs.tag }}" scripts/install.sh --clobber
 
+  matrix-setup:
+    name: Resolve build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - name: Choose the matrix entries
+        id: set
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.build_target }}" = "macos-arm64" ]; then
+            echo 'matrix=[{"runner":"macos-latest","asset_os":"macos","arch":"arm64","target":"macos-arm64"}]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'matrix=[{"runner":"ubuntu-24.04","asset_os":"linux","arch":"x86_64","target":"linux-x86_64"},{"runner":"windows-latest","asset_os":"windows","arch":"x86_64","target":"windows-x86_64"},{"runner":"macos-latest","asset_os":"macos","arch":"arm64","target":"macos-arm64"},{"runner":"macos-26-intel","asset_os":"macos","arch":"x86_64","target":"macos-x86_64"}]' >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build ${{ matrix.asset_os }} ${{ matrix.arch }}
-    needs: ensure-release
+    needs: [ensure-release, matrix-setup]
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: ubuntu-24.04
-            asset_os: linux
-            arch: x86_64
-            target: linux-x86_64
-          - runner: windows-latest
-            asset_os: windows
-            arch: x86_64
-            target: windows-x86_64
-          - runner: macos-latest
-            asset_os: macos
-            arch: arm64
-            target: macos-arm64
-          - runner: macos-26-intel
-            asset_os: macos
-            arch: x86_64
-            target: macos-x86_64
+        include: ${{ fromJson(needs.matrix-setup.outputs.matrix) }}
     runs-on: ${{ matrix.runner }}
-    if: github.event_name != 'workflow_dispatch' || inputs.build_target == 'all' || inputs.build_target == matrix.target
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
