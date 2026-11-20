@@ -5,10 +5,13 @@ quick start guide dialog.
 The wizard is shown once after the language choice and the first main
 window; finishing any step or pressing Skip writes the
 ``onboarding_done`` config flag so the wizard never reappears on its
-own. The same five-step content is re-openable at any time as the Quick
-Start Guide (toolbar button in the GUI, menu entry in the CLI).
+own. The wizard body starts with an application language selector so a
+non-English user is never trapped in an English interface. The same
+guide content is re-openable at any time as the Quick Start Guide (in
+the GUI from the settings dialog, as a menu entry in the CLI).
 """
 from PySide6.QtWidgets import (
+    QComboBox,
     QDialog,
     QHBoxLayout,
     QLabel,
@@ -20,7 +23,7 @@ from PySide6.QtWidgets import (
 from core.config import get as config_get
 from core.config import set as config_set
 from core.guide import GUIDE_STEPS
-from core.i18n import _
+from core.i18n import SUPPORTED_LANGUAGES, _, get_language, set_language
 
 ONBOARDING_DONE_KEY = "onboarding_done"
 
@@ -83,6 +86,24 @@ class OnboardingWizard(QDialog):
         self._finishing = False
 
         layout = QVBoxLayout(self)
+        # Application language choice: shown at the top of the body on the
+        # first step; changing it persists and retranslates immediately.
+        self.language_row = QWidget(self)
+        language_layout = QHBoxLayout(self.language_row)
+        language_layout.setContentsMargins(0, 0, 0, 0)
+        self.language_label = QLabel(_("Application language:"))
+        language_layout.addWidget(self.language_label)
+        self.language_combo = QComboBox()
+        for code, name in SUPPORTED_LANGUAGES:
+            self.language_combo.addItem(name, code)
+        index = self.language_combo.findData(get_language())
+        if index >= 0:
+            self.language_combo.setCurrentIndex(index)
+        self.language_combo.activated.connect(self._on_language_changed)
+        language_layout.addWidget(self.language_combo)
+        language_layout.addStretch(1)
+        layout.addWidget(self.language_row)
+
         self.title_label = QLabel("")
         self.body_label = QLabel("")
         self.body_label.setWordWrap(True)
@@ -106,10 +127,33 @@ class OnboardingWizard(QDialog):
         self._show_step(0)
 
     # ------------------------------------------------------------------
+    # Language choice
+    # ------------------------------------------------------------------
+    def _on_language_changed(self, index):
+        """Persist the chosen language and retranslate everything now."""
+        code = self.language_combo.itemData(index)
+        if not code or code == get_language():
+            return
+        config_set("language", code)
+        set_language(code)
+        self.retranslate_ui()
+        window = self.parent()
+        if window is not None and hasattr(window, "retranslate_ui"):
+            window.retranslate_ui()
+
+    def retranslate_ui(self):
+        """Re-apply the active language to every wizard string."""
+        self.setWindowTitle(_("Welcome to HJS-Workbench"))
+        self.language_label.setText(_("Application language:"))
+        self.skip_button.setText(_("Skip"))
+        self._show_step(self._step)
+
+    # ------------------------------------------------------------------
     # Step navigation
     # ------------------------------------------------------------------
     def _show_step(self, index):
         self._step = index
+        self.language_row.setVisible(index == 0)
         title, lines = GUIDE_STEPS[index]
         self.title_label.setText(
             _("Step {number} of {total}: {title}").format(

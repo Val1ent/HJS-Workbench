@@ -16,6 +16,7 @@ GUIDE_STEPS = [
             "Plug the board into a USB port and check the two USB connectors on the board.",
             "The data port (USB-FS) carries the capture stream; the debug port belongs to the WCH-Link debugger and is only for flashing and debugging.",
             "Capture, measurement, and decoding only work on the data port; a cable in the debug port is not enough.",
+            "When installing, the installer may ask whether to install for all users or only the current user; accepting the default is fine for a single-user computer.",
         ],
     ),
     (
@@ -32,6 +33,14 @@ GUIDE_STEPS = [
             "One-shot capture: choose the sample point count and start the capture; the waveform appears when the transfer completes.",
             "Continuous capture: use the continuous start/stop controls to stream a rolling window that refreshes the waveform every 100-200 ms; stopping releases the port.",
             "One-shot and continuous capture share the data port and cannot run at the same time.",
+        ],
+    ),
+    (
+        "Open a capture file",
+        [
+            "Use the Open file button to load a saved capture; no hardware is needed.",
+            "Choose a .sr or .bin capture file; the dialog starts in the bundled examples folder, so you can open a sample immediately.",
+            "The loaded file replaces the waveform, decode, and measurement views.",
         ],
     ),
     (

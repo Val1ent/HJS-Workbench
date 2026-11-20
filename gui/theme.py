@@ -73,14 +73,40 @@ QComboBox {
     color: $text;
     border: 1px solid $border;
     border-radius: 3px;
-    padding: 3px 8px;
+    padding: 4px 8px;
+    min-height: 24px;
 }
 QComboBox:hover {
+    border-color: $accent;
+    background-color: $alternate;
+}
+QComboBox:pressed {
+    background-color: $window;
     border-color: $accent;
 }
 QComboBox:disabled {
     color: $muted;
     border-color: $border;
+}
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 22px;
+    border-left: 1px solid $border;
+    background-color: $button;
+}
+QComboBox::drop-down:hover {
+    background-color: $alternate;
+    border-left: 1px solid $accent;
+}
+QComboBox::down-arrow {
+    image: none;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid $text;
+    margin-right: 6px;
 }
 QComboBox QAbstractItemView {
     background-color: $base;
@@ -88,6 +114,26 @@ QComboBox QAbstractItemView {
     border: 1px solid $border;
     selection-background-color: $accent;
     selection-color: $accent_text;
+    padding: 2px;
+}
+QComboBox QAbstractItemView::item {
+    min-height: 22px;
+    padding: 4px 6px;
+}
+QToolBar QToolButton#qt_toolbar_ext_button {
+    color: $text;
+    background-color: $button;
+    border: 1px solid $border;
+    border-radius: 3px;
+    padding: 2px 4px;
+    margin-left: 2px;
+}
+QToolBar QToolButton#qt_toolbar_ext_button:hover {
+    background-color: $alternate;
+    border-color: $accent;
+}
+QToolBar QToolButton#qt_toolbar_ext_button:pressed {
+    background-color: $window;
 }
 QSpinBox {
     background-color: $base;

@@ -43,4 +43,11 @@ RELEASE_NOTES = {
         "Waveform zoom controls and multi-file import management.",
         "Windows Setup installer and a cross-platform CLI install script.",
     ],
+    "0.6.3": [
+        "The first-run wizard now includes an application-language picker, and the Quick Start Guide opens from the settings dialog.",
+        "The right-side Decode, Measure, and Signal panel can be hidden, and the waveform expands to use the freed space.",
+        "Measurement detail values now show their units: Hz, ms, and percent.",
+        "The toolbars are reorganized into two rows with clearer drop-down boxes; the overflow menu opens instantly and stays open while you work.",
+        "The install-scope question is reworded for clarity, and the finished page shows a centered brand block.",
+    ],
 }

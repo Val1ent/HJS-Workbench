@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Quick start guide console page: the same five-step guide as the GUI
+Quick start guide console page: the same guide steps as the GUI
 onboarding wizard, re-openable at any time from the main menu.
 """
 from core.guide import GUIDE_STEPS

@@ -16,6 +16,8 @@ main window.
 - Applying persists through ``core.config``, calls ``set_language`` and
   the application ``apply_theme``, and retranslates the interface so the
   change is visible immediately without a restart.
+- The quick start guide is opened from a button inside the dialog, on
+  top of the settings dialog.
 """
 from PySide6.QtWidgets import (
     QApplication,
@@ -32,6 +34,7 @@ from core.config import set as config_set
 from core.i18n import SUPPORTED_LANGUAGES, _, get_language, set_language
 from core.theme import THEME_IDS, THEME_LABELS, get_theme, set_theme
 
+from .onboarding import QuickStartDialog
 from .theme import apply_theme
 
 
@@ -56,6 +59,12 @@ class SettingsDialog(QDialog):
             self.theme_combo.addItem(_(THEME_LABELS[theme_id]), theme_id)
         form.addRow(self.theme_label, self.theme_combo)
 
+        self.guide_button = QPushButton(_("Open quick start guide"))
+        self.guide_button.clicked.connect(self._open_quick_start)
+        guide_row = QHBoxLayout()
+        guide_row.addWidget(self.guide_button)
+        guide_row.addStretch(1)
+
         buttons = QHBoxLayout()
         self.ok_button = QPushButton(_("OK"))
         self.apply_button = QPushButton(_("Apply"))
@@ -70,6 +79,7 @@ class SettingsDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.addLayout(form)
+        layout.addLayout(guide_row)
         layout.addLayout(buttons)
 
         self._sync_from_saved()
@@ -90,6 +100,7 @@ class SettingsDialog(QDialog):
             theme_id = self.theme_combo.itemData(index)
             if theme_id in THEME_LABELS:
                 self.theme_combo.setItemText(index, _(THEME_LABELS[theme_id]))
+        self.guide_button.setText(_("Open quick start guide"))
         self.ok_button.setText(_("OK"))
         self.apply_button.setText(_("Apply"))
         self.cancel_button.setText(_("Cancel"))
@@ -141,3 +152,8 @@ class SettingsDialog(QDialog):
     def _on_ok(self):
         self._apply_choices()
         self.accept()
+
+    def _open_quick_start(self):
+        """Open the quick start guide dialog on top of this dialog."""
+        dialog = QuickStartDialog(self)
+        dialog.exec()

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Main window: grouped toolbar (connection / acquisition / file /
-settings) + waveform + decode/measure tabs + status bar."""
+"""Main window: two labeled toolbars (file/application + capture),
+waveform + hideable decode/measure/signal tabs + status bar."""
 import os
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QEvent, Qt, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
     QFileDialog,
+    QHBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -17,17 +18,20 @@ from PySide6.QtWidgets import (
     QSplitter,
     QTabWidget,
     QToolBar,
+    QToolButton,
+    QVBoxLayout,
     QWidget,
 )
 
 import core
+from core.config import get as config_get
+from core.config import set as config_set
 from core.files import format_rate
 from core.i18n import _
 from core.paths import resource_path
 
 from .decoder_panel import DecoderPanel
 from .measure_panel import MeasurePanel
-from .onboarding import QuickStartDialog
 from .settings_dialog import SettingsDialog
 from .signal_panel import SignalPanel
 from .waveform_view import WaveformView
@@ -39,6 +43,59 @@ POINTS_MAX = 20000
 POINTS_STEP = 500
 
 CAPTURE_FILE_FILTER = "Capture files (*.sr *.bin);;All files (*)"
+
+EXT_BUTTON_NAME = "qt_toolbar_ext_button"
+
+
+class _InstantPopupToolBar(QToolBar):
+    """Toolbar whose overflow button opens its menu on a plain click.
+
+    Qt creates the internal extension QToolButton lazily when a toolbar
+    overflows and re-asserts its popup mode during layout, so the
+    InstantPopup mode is re-applied after every child add, parent change,
+    resize, and layout request, and periodically for good measure. Qt
+    also collapses an expanded overflowing toolbar as soon as the mouse
+    leaves it; the Leave event is swallowed while the overflow is
+    expanded so it stays open regardless of where the mouse moves, and
+    collapses only when the user clicks the extension button again.
+    """
+
+    _FIX_EVENTS = (QEvent.ChildAdded, QEvent.ParentChange,
+                   QEvent.Resize, QEvent.LayoutRequest)
+
+    def __init__(self, title, parent=None):
+        super().__init__(title, parent)
+        self._ext_fix_timer = QTimer(self)
+        self._ext_fix_timer.setInterval(250)
+        self._ext_fix_timer.timeout.connect(
+            lambda: _apply_ext_popup_mode(self))
+        self._ext_fix_timer.start()
+
+    def _is_overflow_expanded(self):
+        """True while the toolbar overflow (extra rows) is expanded."""
+        for button in self.findChildren(QToolButton, EXT_BUTTON_NAME):
+            if button.isChecked():
+                return True
+        return False
+
+    def event(self, event):
+        if event.type() in self._FIX_EVENTS:
+            # Qt names the extension button and resets its popup mode
+            # after the event that announces it, so the name-filtered fix
+            # runs once the current event has finished.
+            QTimer.singleShot(0, lambda: _apply_ext_popup_mode(self))
+        elif (event.type() == QEvent.Leave
+                and self._is_overflow_expanded()):
+            # Keep the expanded overflow open on mouse leave; Qt would
+            # collapse it immediately otherwise.
+            return True
+        return super().event(event)
+
+
+def _apply_ext_popup_mode(toolbar):
+    """Force InstantPopup on any already-created toolbar extension button."""
+    for button in toolbar.findChildren(QToolButton, EXT_BUTTON_NAME):
+        button.setPopupMode(QToolButton.InstantPopup)
 
 
 class MainWindow(QMainWindow):
@@ -69,107 +126,119 @@ class MainWindow(QMainWindow):
     # Building the UI
     # ------------------------------------------------------------------
     def _build_toolbar(self):
-        self.toolbar = QToolBar("Capture controls")
-        self.toolbar.setMovable(False)
-        self.addToolBar(self.toolbar)
+        # Top row: file and application actions as one tight contiguous
+        # group (Open file, Import, the imported-file selector, Remove),
+        # then an expanding spacer, then Settings and the side-panel
+        # toggle.
+        self.file_toolbar = _InstantPopupToolBar("File and application")
+        self.file_toolbar.setMovable(False)
+        self.addToolBar(Qt.TopToolBarArea, self.file_toolbar)
 
-        # Connection group: device selector, port selector, Refresh ports.
-        self.device_label = QLabel(" Device:")
-        self.toolbar.addWidget(self.device_label)
-        self.device_combo = QComboBox()
-        for backend in core.list_backends():
-            self.device_combo.addItem(backend.display_name, backend.id)
-        self.device_combo.activated.connect(self._on_device_changed)
-        self.toolbar.addWidget(self.device_combo)
-        self.device_info = QLabel("")
-        self.toolbar.addWidget(self.device_info)
-
-        self.port_label = QLabel(" Port:")
-        self.toolbar.addWidget(self.port_label)
-        self.port_combo = QComboBox()
-        self.port_combo.setMinimumWidth(260)
-        self.toolbar.addWidget(self.port_combo)
-
-        self.refresh_button = QPushButton("Refresh ports")
-        self.refresh_button.clicked.connect(self.refresh_ports)
-        self.toolbar.addWidget(self.refresh_button)
-
-        # Acquisition group: sample rate, capture mode, restore defaults,
-        # sample points, Capture, Start continuous, Stop.
-        self.toolbar.addSeparator()
-        self.rate_label = QLabel(" Sample rate:")
-        self.toolbar.addWidget(self.rate_label)
-        self.rate_combo = QComboBox()
-        self.rate_combo.activated.connect(self._on_rate_changed)
-        self.toolbar.addWidget(self.rate_combo)
-
-        self.mode_label = QLabel(" Mode:")
-        self.toolbar.addWidget(self.mode_label)
-        self.mode_combo = QComboBox()
-        self.mode_combo.activated.connect(self._on_mode_changed)
-        self.toolbar.addWidget(self.mode_combo)
-
-        self.restore_button = QPushButton("Restore defaults")
-        self.restore_button.clicked.connect(self.restore_session_defaults)
-        self.toolbar.addWidget(self.restore_button)
-
-        self.points_label = QLabel(" Sample points:")
-        self.toolbar.addWidget(self.points_label)
-        self.points_spin = QSpinBox()
-        self.points_spin.setRange(POINTS_MIN, POINTS_MAX)
-        self.points_spin.setSingleStep(POINTS_STEP)
-        self.points_spin.setValue(POINTS_DEFAULT)
-        self.toolbar.addWidget(self.points_spin)
-
-        self.acquire_button = QPushButton("Capture")
-        self.acquire_button.clicked.connect(self.acquire_serial)
-        self.toolbar.addWidget(self.acquire_button)
-
-        self.cont_start_button = QPushButton("Start continuous")
-        self.cont_start_button.clicked.connect(self.start_continuous)
-        self.toolbar.addWidget(self.cont_start_button)
-
-        self.cont_stop_button = QPushButton("Stop")
-        self.cont_stop_button.setEnabled(False)
-        self.cont_stop_button.clicked.connect(self.stop_continuous)
-        self.toolbar.addWidget(self.cont_stop_button)
-
-        # File group: Open file, Import, the imported-file selector, Remove.
-        self.toolbar.addSeparator()
         self.open_button = QPushButton("Open file")
+        self.open_button.setToolTip(_("Open a .sr or .bin capture file"))
         self.open_button.clicked.connect(self.open_file)
-        self.toolbar.addWidget(self.open_button)
+        self.file_toolbar.addWidget(self.open_button)
 
         self.import_button = QPushButton("Import")
         self.import_button.setToolTip(_("Import capture files"))
         self.import_button.clicked.connect(self.import_files)
-        self.toolbar.addWidget(self.import_button)
+        self.file_toolbar.addWidget(self.import_button)
 
         self.import_combo = QComboBox()
         self.import_combo.setMinimumWidth(220)
         self.import_combo.addItem(_(" (no imported files)"), None)
         self.import_combo.activated.connect(self._on_import_selected)
-        self.toolbar.addWidget(self.import_combo)
+        self.file_toolbar.addWidget(self.import_combo)
 
         self.remove_button = QPushButton("Remove")
         self.remove_button.setEnabled(False)
         self.remove_button.clicked.connect(self.remove_import)
-        self.toolbar.addWidget(self.remove_button)
+        self.file_toolbar.addWidget(self.remove_button)
 
-        # Right side: Settings and Quick start.
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.toolbar.addWidget(spacer)
+        self.file_toolbar.addWidget(spacer)
 
         self.settings_button = QPushButton("Settings")
+        self.settings_button.setToolTip(
+            _("Open settings to change the language and theme"))
         self.settings_button.clicked.connect(self.open_settings)
-        self.toolbar.addWidget(self.settings_button)
+        self.file_toolbar.addWidget(self.settings_button)
 
-        # Re-openable quick start guide (same content as the first-run
-        # onboarding wizard)
-        self.guide_button = QPushButton("Quick start")
-        self.guide_button.clicked.connect(self.show_quick_start)
-        self.toolbar.addWidget(self.guide_button)
+        self.side_toggle_button = QPushButton("Hide side panel")
+        self.side_toggle_button.clicked.connect(self._toggle_side_panel)
+        self.file_toolbar.addWidget(self.side_toggle_button)
+
+        # Second row: connection and acquisition controls.
+        self.capture_toolbar = _InstantPopupToolBar("Capture controls")
+        self.capture_toolbar.setMovable(False)
+        self.addToolBar(Qt.TopToolBarArea, self.capture_toolbar)
+
+        # Connection group: device selector, port selector, Refresh ports.
+        self.device_label = QLabel(" Device:")
+        self.capture_toolbar.addWidget(self.device_label)
+        self.device_combo = QComboBox()
+        for backend in core.list_backends():
+            self.device_combo.addItem(backend.display_name, backend.id)
+        self.device_combo.activated.connect(self._on_device_changed)
+        self.capture_toolbar.addWidget(self.device_combo)
+        self.device_info = QLabel("")
+        self.capture_toolbar.addWidget(self.device_info)
+
+        self.port_label = QLabel(" Port:")
+        self.capture_toolbar.addWidget(self.port_label)
+        self.port_combo = QComboBox()
+        self.port_combo.setMinimumWidth(260)
+        self.capture_toolbar.addWidget(self.port_combo)
+
+        self.refresh_button = QPushButton("Refresh ports")
+        self.refresh_button.clicked.connect(self.refresh_ports)
+        self.capture_toolbar.addWidget(self.refresh_button)
+
+        # Acquisition group: sample rate, capture mode, sample points,
+        # restore defaults, Capture, Start continuous, Stop.
+        self.capture_toolbar.addSeparator()
+        self.rate_label = QLabel(" Sample rate:")
+        self.capture_toolbar.addWidget(self.rate_label)
+        self.rate_combo = QComboBox()
+        self.rate_combo.activated.connect(self._on_rate_changed)
+        self.capture_toolbar.addWidget(self.rate_combo)
+
+        self.mode_label = QLabel(" Mode:")
+        self.capture_toolbar.addWidget(self.mode_label)
+        self.mode_combo = QComboBox()
+        self.mode_combo.activated.connect(self._on_mode_changed)
+        self.capture_toolbar.addWidget(self.mode_combo)
+
+        self.points_label = QLabel(" Sample points:")
+        self.capture_toolbar.addWidget(self.points_label)
+        self.points_spin = QSpinBox()
+        self.points_spin.setRange(POINTS_MIN, POINTS_MAX)
+        self.points_spin.setSingleStep(POINTS_STEP)
+        self.points_spin.setValue(POINTS_DEFAULT)
+        self.capture_toolbar.addWidget(self.points_spin)
+
+        self.restore_button = QPushButton("Restore defaults")
+        self.restore_button.clicked.connect(self.restore_session_defaults)
+        self.capture_toolbar.addWidget(self.restore_button)
+
+        self.capture_toolbar.addSeparator()
+
+        self.acquire_button = QPushButton("Capture")
+        self.acquire_button.clicked.connect(self.acquire_serial)
+        self.capture_toolbar.addWidget(self.acquire_button)
+
+        self.cont_start_button = QPushButton("Start continuous")
+        self.cont_start_button.clicked.connect(self.start_continuous)
+        self.capture_toolbar.addWidget(self.cont_start_button)
+
+        self.cont_stop_button = QPushButton("Stop")
+        self.cont_stop_button.setEnabled(False)
+        self.cont_stop_button.clicked.connect(self.stop_continuous)
+        self.capture_toolbar.addWidget(self.cont_stop_button)
+
+        _apply_ext_popup_mode(self.file_toolbar)
+        _apply_ext_popup_mode(self.capture_toolbar)
 
     def _build_central(self):
         self.waveform = WaveformView()
@@ -182,13 +251,34 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.measure, "Measure")
         self.tabs.addTab(self.signal, "Signal")
 
+        # Header row above the tabs with the panel hide/show toggle, so the
+        # button stays reachable while the panel is shown.
+        self.side_header = QWidget()
+        header_layout = QHBoxLayout(self.side_header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.addStretch(1)
+        self.panel_toggle_button = QPushButton("Hide side panel")
+        self.panel_toggle_button.clicked.connect(self._toggle_side_panel)
+        header_layout.addWidget(self.panel_toggle_button)
+
+        self.side_container = QWidget()
+        side_layout = QVBoxLayout(self.side_container)
+        side_layout.setContentsMargins(0, 0, 0, 0)
+        side_layout.setSpacing(4)
+        side_layout.addWidget(self.side_header)
+        side_layout.addWidget(self.tabs, 1)
+
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.waveform)
-        splitter.addWidget(self.tabs)
+        splitter.addWidget(self.side_container)
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 2)
         splitter.setSizes([880, 380])
         self.setCentralWidget(splitter)
+
+        self._side_panel_hidden = bool(
+            config_get("side_panel_hidden", False))
+        self._apply_side_panel_state()
 
     # ------------------------------------------------------------------
     # Settings and language
@@ -202,10 +292,27 @@ class MainWindow(QMainWindow):
         dialog = SettingsDialog(self)
         dialog.exec()
 
-    def show_quick_start(self):
-        """Open the re-openable quick start guide dialog."""
-        dialog = QuickStartDialog(self)
-        dialog.exec()
+    # ------------------------------------------------------------------
+    # Side panel visibility
+    # ------------------------------------------------------------------
+    def _toggle_side_panel(self):
+        """Hide or show the right-side panel and persist the choice."""
+        self._side_panel_hidden = not self._side_panel_hidden
+        config_set("side_panel_hidden", self._side_panel_hidden)
+        self._apply_side_panel_state()
+
+    def _apply_side_panel_state(self):
+        """Sync the side container visibility and both toggle button labels.
+
+        Hiding the whole side container frees its width so the waveform
+        expands through the splitter. The toolbar toggle button stays
+        visible and always offers a way to show the panel again.
+        """
+        hidden = self._side_panel_hidden
+        self.side_container.setVisible(not hidden)
+        label = _("Show side panel") if hidden else _("Hide side panel")
+        self.panel_toggle_button.setText(label)
+        self.side_toggle_button.setText(label)
 
     # ------------------------------------------------------------------
     # Device selection
@@ -370,7 +477,8 @@ class MainWindow(QMainWindow):
     def retranslate_ui(self):
         """Re-apply the active language to every visible string."""
         self.setWindowTitle("HJS-Workbench")
-        self.toolbar.setWindowTitle(_("Capture controls"))
+        self.file_toolbar.setWindowTitle(_("File and application"))
+        self.capture_toolbar.setWindowTitle(_("Capture controls"))
         self.port_label.setText(_(" Port:"))
         self.refresh_button.setText(_("Refresh ports"))
         self.rate_label.setText(_(" Sample rate:"))
@@ -381,11 +489,14 @@ class MainWindow(QMainWindow):
         self.cont_start_button.setText(_("Start continuous"))
         self.cont_stop_button.setText(_("Stop"))
         self.open_button.setText(_("Open file"))
+        self.open_button.setToolTip(_("Open a .sr or .bin capture file"))
         self.import_button.setText(_("Import"))
         self.import_button.setToolTip(_("Import capture files"))
         self.remove_button.setText(_("Remove"))
         self.settings_button.setText(_("Settings"))
-        self.guide_button.setText(_("Quick start"))
+        self.settings_button.setToolTip(
+            _("Open settings to change the language and theme"))
+        self._apply_side_panel_state()
         self.tabs.setTabText(0, _("Decode"))
         self.tabs.setTabText(1, _("Measure"))
         self.tabs.setTabText(2, _("Signal"))

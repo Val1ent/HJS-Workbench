@@ -111,11 +111,11 @@ current backend's capabilities."""
             if key == "cycles":
                 label.setText(str(result[key]))
             elif unit == "ms":
-                label.setText(f"{result[key] * 1000:.3f}")
+                label.setText(f"{result[key] * 1000:.3f} ms")
             elif unit == "%":
-                label.setText(f"{result[key]:.1f}")
+                label.setText(f"{result[key]:.1f} %")
             else:
-                label.setText(f"{result[key]:.1f}")
+                label.setText(f"{result[key]:.1f} Hz")
 
     def set_data(self, rate, samples):
         """Measure every backend channel separately and refresh the table

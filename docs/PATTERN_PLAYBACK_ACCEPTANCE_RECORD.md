@@ -1,7 +1,7 @@
 # Pattern Playback Decoder Verification - Independent Acceptance Record
 
 Task: 110, real-hardware decode verification of the 19 protocol decoders.
-Acceptance executed independently by Doubao on 2026-11-14. The conclusion
+Acceptance executed independently on 2026-11-14. The conclusion
 below comes from an independently written run on the real board, not from
 the construction logs.
 

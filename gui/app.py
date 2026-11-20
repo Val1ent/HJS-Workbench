@@ -11,10 +11,10 @@ before the main window; the chosen code is saved and applied, then the
 main window opens. The picker lists the native names and is not translated.
 
 After the main window is shown, the onboarding wizard walks through the
-first steps once (connecting, port selection, capture, waveform/decode/
-measurement, and the signal generator); finishing or skipping persists the
-flag and it never appears automatically again. The same guide stays
-available through the Quick Start button.
+first steps once (connecting, port selection, capture, opening a capture
+file, waveform/decode/measurement, and the signal generator); finishing
+or skipping persists the flag and it never appears automatically again.
+The same guide stays available through the settings dialog.
 
 After the main window is shown, the release notes are shown once when the
 installed GUI version changed: a "What's new" dialog with the version and
