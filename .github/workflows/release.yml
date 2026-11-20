@@ -54,6 +54,8 @@ jobs:
           version="${tag#v}"
           echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
+      - name: Verify source version matches tag
+        run: python scripts/sync_version.py --check --expect "${{ steps.meta.outputs.version }}"
       - name: Create release when missing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

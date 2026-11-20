@@ -39,6 +39,8 @@ jobs:
           pip install ruff
       - name: Lint
         run: python -m ruff check .
+      - name: Version consistency
+        run: python scripts/sync_version.py --check
       - name: Syntax compile check
         run: python -m compileall -q core cli gui
       - name: Unit tests

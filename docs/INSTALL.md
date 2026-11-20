@@ -96,3 +96,19 @@ on all three platforms.
 
 - **Application packages**: see `packaging/BUILD.md` for the PyInstaller
   build steps.
+
+## Version management
+
+The version is defined once in `gui/version.py`. The CLI version file, the
+installer fallback definition, the shell install script, this documentation
+link, and every README title are managed targets and are not edited by hand.
+
+- `python scripts/sync_version.py` writes the authoritative version into
+  every managed target.
+- `python scripts/sync_version.py --check` verifies that every target
+  matches; CI runs this check on every push.
+- `python scripts/sync_version.py --set X.Y.Z` changes the authoritative
+  version and synchronizes all targets in one step.
+
+The release workflow additionally checks that the tag version matches
+`gui/version.py`, so a tag is never built against a different source version.
