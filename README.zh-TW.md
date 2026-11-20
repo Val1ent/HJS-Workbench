@@ -1,4 +1,4 @@
-# HJS-Workbench
+# HJS-Workbench v0.6.3
 
 [English](README.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [简体中文](README.zh-CN.md) | **繁體中文** | [العربية](README.ar.md)
 
