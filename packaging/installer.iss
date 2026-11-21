@@ -37,7 +37,7 @@
   ; Fallback only. The normal build passes the real version via
   ; ISCC /DMyAppVersion=<version>, sourced from gui/version.py.
   ; Direct "ISCC installer.iss" without the switch uses this value.
-  #define MyAppVersion "0.6.3"
+  #define MyAppVersion "0.6.4"
 #endif
 ; The version is supplied by the build script from gui/version.py, so this
 ; fallback does not need to be synchronized by hand for a release.

@@ -29,7 +29,7 @@
 set -u
 
 APP_NAME="HJSWorkbench-CLI"
-VERSION="0.6.3"
+VERSION="0.6.4"
 BASE_URL="${HJS_INSTALL_BASE_URL:-https://github.com/Val1ent/HJS-Workbench/releases/download/v${VERSION}}"
 
 lang="en"

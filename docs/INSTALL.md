@@ -37,7 +37,7 @@ Setup 6; see [Build prerequisites](#build-prerequisites).
 Run the one-line command:
 
 ```bash
-curl -fsSL https://github.com/Val1ent/HJS-Workbench/releases/download/v0.6.3/install.sh | bash
+curl -fsSL https://github.com/Val1ent/HJS-Workbench/releases/download/v0.6.4/install.sh | bash
 ```
 
 The script runs in this fixed order:

@@ -50,4 +50,11 @@ RELEASE_NOTES = {
         "The toolbars are reorganized into two rows with clearer drop-down boxes; the overflow menu opens instantly and stays open while you work.",
         "The install-scope question is reworded for clarity, and the finished page shows a centered brand block.",
     ],
+    "0.6.4": [
+        "New Pattern Playback panel in the GUI: edit a six-channel level sequence and capture the device's own output.",
+        "Pattern editor with a clickable grid, adjustable length up to 8000 cells, a clear control, and built-in protocol templates.",
+        "Self-contained loop: the device generates the pattern, captures it on the input channels, and decodes it with the real protocol decoders.",
+        "The Manchester decoder scans several start transitions, so a spurious head transition no longer breaks alignment.",
+        "The playback capture window now covers one full DMA block, keeping the complete waveform even when the trigger lands near a block boundary.",
+    ],
 }
