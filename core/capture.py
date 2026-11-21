@@ -7,6 +7,11 @@ text live here. When the caller supplies a sample rate or a capture
 mode, the value is validated through the backend and the matching
 firmware command is sent before collecting; the rate returned with the
 data is the rate that was actually applied, never a substituted value.
+
+Pattern playback (``playback_pattern``) loads a level sequence into the
+firmware pattern buffer, replays it on the real GPO pins, and reads the
+real capture back over the same signal connection; it never fabricates
+samples.
 """
 import time
 
@@ -82,6 +87,67 @@ def acquire_serial(port, n_points, timeout=8.0, sample_rate=None, mode=None):
     applied_rate = (backend.capabilities.sample_rate if sample_rate is None
                     else sample_rate)
     return applied_rate, samples
+
+
+PATTERN_PLAYBACK_RATE = 10000
+
+
+def _poll_bytes(conn, need, timeout):
+    """Poll non-blocking reads until ``need`` bytes arrive or the timeout.
+
+    ``read_blocking`` repeatedly reconfigures the port timeout and has
+    been shown to drop bytes on the pattern path, so this loop only uses
+    ``read_available``; a partial read is returned when the deadline
+    expires first and nothing is fabricated.
+    """
+    buf = bytearray()
+    deadline = time.monotonic() + timeout
+    while len(buf) < need and time.monotonic() < deadline:
+        chunk = conn.read_available()
+        if chunk:
+            buf.extend(chunk[:need - len(buf)])
+        else:
+            time.sleep(0.005)
+    return bytes(buf)
+
+
+def playback_pattern(port, cells, margin=300, timeout=20.0):
+    """Load a level sequence, play it, and return the real capture.
+
+    Every cell is masked to the six GPO bits (0x3F), the length is
+    bounded to the firmware pattern buffer, and one long signal-baud
+    connection carries the whole flow (load, flush, play, read, stop) so
+    the capture starts before the waveform head is missed. ``K`` is
+    written separately from the pattern bytes, and ``L`` is sent on the
+    error path as well. Returns ``(rate, samples)`` where ``rate`` is
+    always 10000 and ``samples`` are the bytes actually read back from
+    the real device; the list is shorter than ``need`` when the timeout
+    expired first. The connection is closed in every case.
+    """
+    from .hal import pattern
+    data = bytes(int(c) & 0x3F for c in cells)
+    if len(data) < 1 or len(data) > pattern.PATTERN_MAX:
+        raise ValueError(
+            _("Pattern length must be between {min} and {max} cells."
+              ).format(min=1, max=pattern.PATTERN_MAX))
+    backend = current_backend()
+    conn = backend.connect(port, baud=backend.capabilities.signal_baud)
+    try:
+        pattern.load_pattern(conn, data)
+        conn.reset_input()
+        pattern.play(conn)
+        need = len(data) + 2 * margin
+        captured = _poll_bytes(conn, need, timeout)
+        pattern.stop(conn)
+    except Exception:
+        try:
+            pattern.stop(conn)
+        except Exception:
+            pass
+        conn.close()
+        raise
+    conn.close()
+    return PATTERN_PLAYBACK_RATE, list(captured)
 
 
 def acquire_burst(port, sample_rate=None, timeout=10.0, wait_time=None):

@@ -7,7 +7,7 @@ front-ends:
 
     DECKS, channel_bits, read_sr, read_bin, write_sr, acquire_file,
     scan_frames, best_packet, uart_decode, measure,
-    list_serial_ports, acquire_serial, acquire_burst,
+    list_serial_ports, acquire_serial, acquire_burst, playback_pattern,
     current_backend, list_backends, select_backend
 """
 from . import (
@@ -15,7 +15,12 @@ from . import (
     hal,  # noqa: F401
     session,  # noqa: F401
 )
-from .capture import acquire_burst, acquire_serial, list_serial_ports
+from .capture import (
+    acquire_burst,
+    acquire_serial,
+    list_serial_ports,
+    playback_pattern,
+)
 from .files import acquire_file, read_bin, read_sr, write_sr
 from .hal import (
     current_backend,
@@ -41,6 +46,7 @@ __all__ = [
     "list_backends",
     "list_serial_ports",
     "measure",
+    "playback_pattern",
     "read_bin",
     "read_sr",
     "register_backend",

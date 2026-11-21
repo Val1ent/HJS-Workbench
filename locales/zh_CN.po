@@ -1033,3 +1033,51 @@ msgstr "工具栏重新分为两排，下拉框更清晰；溢出菜单即时弹
 
 msgid "The install-scope question is reworded for clarity, and the finished page shows a centered brand block."
 msgstr "安装范围问题已重新措辞以更清晰，完成页显示居中的品牌块。"
+
+msgid "Pattern"
+msgstr "模式"
+
+msgid "Sequence length"
+msgstr "序列长度"
+
+msgid "Clear"
+msgstr "清空"
+
+msgid "Protocol template"
+msgstr "协议模板"
+
+msgid "Load template"
+msgstr "载入模板"
+
+msgid "Playback"
+msgstr "回放"
+
+msgid "Pattern: {n} cells, {us} us"
+msgstr "模式：{n} 格，{us} 微秒"
+
+msgid "Playback captured {n} points ({rate} Hz)"
+msgstr "回放抓回 {n} 个点（{rate} Hz）"
+
+msgid "Playback started"
+msgstr "回放已开始"
+
+msgid "Playback failed"
+msgstr "回放失败"
+
+msgid "Template too long: {n} cells (max {max})"
+msgstr "模板过长：{n} 格（上限 {max}）"
+
+msgid "Template is empty"
+msgstr "模板为空"
+
+msgid "Template load failed"
+msgstr "模板载入失败"
+
+msgid "Connect the pattern port before playing back."
+msgstr "回放前请先连接模式端口。"
+
+msgid "Forced all GPO channels low"
+msgstr "已将所有 GPO 通道拉低"
+
+msgid "Pattern length must be between {min} and {max} cells."
+msgstr "模式长度必须在 {min} 到 {max} 格之间。"

@@ -86,6 +86,10 @@ même règle fiche technique plus vérification physique.
   (fréquence et rapport cyclique), rafale (fréquence et nombre d'impulsions) et
   niveaux forcés haut/bas. Reboucler la sortie du générateur vers une entrée pour
   acquérir et décoder le signal de l'appareil lui-même en boucle fermée.
+- **Relecture de motifs** - éditez une séquence de niveaux à 6 canaux dans
+  l'interface graphique et relisez-la sur le matériel réel, avec recapture du
+  résultat en boucle fermée (100 microsecondes par cellule, jusqu'à 8000
+  cellules).
 - **Mesure en temps réel** - fréquence, période, largeur d'impulsion haut/bas,
   rapport cyclique, gigue (min/max), sur tous les canaux.
 - **Déclenchement et comptage** - détection de front montant/descendant et comptage

@@ -1033,3 +1033,51 @@ msgstr "Die Werkzeugleisten sind in zwei Reihen mit klareren Dropdown-Feldern ne
 
 msgid "The install-scope question is reworded for clarity, and the finished page shows a centered brand block."
 msgstr "Die Frage zum Installationsbereich ist für mehr Klarheit umformuliert, und die Abschlussseite zeigt einen zentrierten Markenblock."
+
+msgid "Pattern"
+msgstr "Muster"
+
+msgid "Sequence length"
+msgstr "Sequenzlänge"
+
+msgid "Clear"
+msgstr "Löschen"
+
+msgid "Protocol template"
+msgstr "Protokollvorlage"
+
+msgid "Load template"
+msgstr "Vorlage laden"
+
+msgid "Playback"
+msgstr "Wiedergabe"
+
+msgid "Pattern: {n} cells, {us} us"
+msgstr "Muster: {n} Zellen, {us} µs"
+
+msgid "Playback captured {n} points ({rate} Hz)"
+msgstr "Wiedergabe erfasst: {n} Punkte ({rate} Hz)"
+
+msgid "Playback started"
+msgstr "Wiedergabe gestartet"
+
+msgid "Playback failed"
+msgstr "Wiedergabe fehlgeschlagen"
+
+msgid "Template too long: {n} cells (max {max})"
+msgstr "Vorlage zu lang: {n} Zellen (max. {max})"
+
+msgid "Template is empty"
+msgstr "Die Vorlage ist leer"
+
+msgid "Template load failed"
+msgstr "Laden der Vorlage fehlgeschlagen"
+
+msgid "Connect the pattern port before playing back."
+msgstr "Verbinden Sie den Muster-Port, bevor Sie die Wiedergabe starten."
+
+msgid "Forced all GPO channels low"
+msgstr "Alle GPO-Kanäle auf niedrigen Pegel gesetzt"
+
+msgid "Pattern length must be between {min} and {max} cells."
+msgstr "Die Musterlänge muss zwischen {min} und {max} Zellen liegen."

@@ -32,6 +32,7 @@ from core.paths import resource_path
 
 from .decoder_panel import DecoderPanel
 from .measure_panel import MeasurePanel
+from .pattern_panel import PatternPanel
 from .settings_dialog import SettingsDialog
 from .signal_panel import SignalPanel
 from .waveform_view import WaveformView
@@ -245,11 +246,14 @@ class MainWindow(QMainWindow):
         self.decoder = DecoderPanel()
         self.measure = MeasurePanel()
         self.signal = SignalPanel()
+        self.pattern_panel = PatternPanel(
+            self, result_callback=self._on_pattern_result)
 
         self.tabs = QTabWidget()
         self.tabs.addTab(self.decoder, "Decode")
         self.tabs.addTab(self.measure, "Measure")
         self.tabs.addTab(self.signal, "Signal")
+        self.tabs.addTab(self.pattern_panel, "Pattern")
 
         # Header row above the tabs with the panel hide/show toggle, so the
         # button stays reachable while the panel is shown.
@@ -330,6 +334,7 @@ class MainWindow(QMainWindow):
         # The signal connection baud comes from the backend capabilities;
         # an open connection to the old backend must not survive the switch.
         self.signal.disconnect()
+        self.pattern_panel.disconnect()
         self._update_device_info()
         self.waveform.refresh_channels()
         self.measure.refresh_channels()
@@ -500,6 +505,7 @@ class MainWindow(QMainWindow):
         self.tabs.setTabText(0, _("Decode"))
         self.tabs.setTabText(1, _("Measure"))
         self.tabs.setTabText(2, _("Signal"))
+        self.tabs.setTabText(3, _("Pattern"))
         self.device_label.setText(_(" Device:"))
         self._update_device_info()
         self._render_status()
@@ -510,6 +516,7 @@ class MainWindow(QMainWindow):
         self.decoder.retranslate_ui()
         self.measure.retranslate_ui()
         self.signal.retranslate_ui()
+        self.pattern_panel.retranslate_ui()
 
     def _retranslate_port_placeholder(self):
         """Re-apply the language to the empty-port placeholder row only."""
@@ -753,6 +760,17 @@ class MainWindow(QMainWindow):
         self._set_status("Captured {n} points ({rate} Hz)",
                          n=len(samples), rate=rate)
 
+    def _on_pattern_result(self, rate, samples):
+        """Show the real capture read back from the pattern playback.
+
+        The samples come from the pattern panel's playback callback and
+        are the bytes the device actually sent; they are never the
+        edited sequence itself.
+        """
+        if self._closing:
+            return
+        self._on_success(rate, samples)
+
     def _on_failure(self, message):
         if self._closing:
             return
@@ -789,4 +807,7 @@ class MainWindow(QMainWindow):
             cont.wait(2000)
         # Release the signal-generator port as well.
         self.signal.shutdown()
+        # Force the pattern GPOs low, join the playback worker, and
+        # release the pattern port.
+        self.pattern_panel.shutdown()
         super().closeEvent(event)

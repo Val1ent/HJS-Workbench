@@ -87,6 +87,10 @@ Regel Datenblatt plus physische Verifizierung.
   Hoch-/Niedrigpegel. Den Generatorausgang auf einen Eingang zurückschleifen, um
   das eigene Signal des Geräts in einer geschlossenen Schleife zu erfassen und zu
   decodieren.
+- **Muster-Wiedergabe** - bearbeiten Sie eine 6-Kanal-Pegelsequenz in der GUI
+  und spielen Sie sie auf der echten Hardware ab, mit Rückerfassung des
+  Ergebnisses in einer geschlossenen Schleife (100 Mikrosekunden pro Zelle, bis
+  zu 8000 Zellen).
 - **Echtzeitmessung** - Frequenz, Periode, hohe/niedrige Impulsbreite, Tastgrad,
   Jitter (Min/Max), über alle Kanäle.
 - **Flankentrigger und Zählung** - steigende/fallende Flankenerkennung und

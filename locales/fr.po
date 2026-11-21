@@ -1033,3 +1033,51 @@ msgstr "Les barres d'outils sont réorganisées en deux rangées avec des listes
 
 msgid "The install-scope question is reworded for clarity, and the finished page shows a centered brand block."
 msgstr "La question sur la portée de l'installation est reformulée pour plus de clarté, et la page de fin affiche un bloc de marque centré."
+
+msgid "Pattern"
+msgstr "Motif"
+
+msgid "Sequence length"
+msgstr "Longueur de la séquence"
+
+msgid "Clear"
+msgstr "Effacer"
+
+msgid "Protocol template"
+msgstr "Modèle de protocole"
+
+msgid "Load template"
+msgstr "Charger le modèle"
+
+msgid "Playback"
+msgstr "Lecture"
+
+msgid "Pattern: {n} cells, {us} us"
+msgstr "Motif : {n} cellules, {us} µs"
+
+msgid "Playback captured {n} points ({rate} Hz)"
+msgstr "Lecture capturée : {n} points ({rate} Hz)"
+
+msgid "Playback started"
+msgstr "Lecture lancée"
+
+msgid "Playback failed"
+msgstr "Échec de la lecture"
+
+msgid "Template too long: {n} cells (max {max})"
+msgstr "Modèle trop long : {n} cellules (max {max})"
+
+msgid "Template is empty"
+msgstr "Le modèle est vide"
+
+msgid "Template load failed"
+msgstr "Échec du chargement du modèle"
+
+msgid "Connect the pattern port before playing back."
+msgstr "Connectez le port du motif avant la lecture."
+
+msgid "Forced all GPO channels low"
+msgstr "Tous les canaux GPO forcés au niveau bas"
+
+msgid "Pattern length must be between {min} and {max} cells."
+msgstr "La longueur du motif doit être comprise entre {min} et {max} cellules."

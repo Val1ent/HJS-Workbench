@@ -82,6 +82,9 @@ datasheet-plus-physical-verification rule.
   (frequency and duty), burst (frequency and pulse count), and forced high/low
   levels. Loop the generator output back to an input to capture and decode the
   device's own signal in a closed loop.
+- **Pattern playback** - edit a six-channel level sequence in the GUI and play
+  it back on the real device, with the real capture read back in a closed loop
+  (100 microseconds per cell, up to 8000 cells).
 - **Real-time measurement** - frequency, period, high/low pulse width, duty,
   jitter (min/max), across channels.
 - **Edge trigger and counting** - rising/falling edge detection and counting per
