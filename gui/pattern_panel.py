@@ -496,6 +496,7 @@ class PatternPanel(QWidget):
             self._set_status("Playback failed")
             return
         self._set_connected(True)
+        self._set_status("Connected to {port}", port=port)
 
     # ------------------------------------------------------------------
     # Shutdown

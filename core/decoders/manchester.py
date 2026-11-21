@@ -40,19 +40,26 @@ def decode_manchester(samples, rate, ch=0):
     candidates = sorted({min_gap, 2 * min_gap})
     if min_gap % 2 == 0:
         candidates.insert(0, min_gap // 2)
+    # The capture may start with a spurious head transition (an extra
+    # level blip before the real signal), so anchor the decode at every
+    # candidate start transition and keep the combination that yields the
+    # most complete bytes.
     best = None
-    for half in candidates:
-        if half < 2:
-            continue
-        data = _walk(bits, trans, half)
-        if best is None or len(data) > len(best[1]):
-            best = (half, data)
-    half, data = best
-    if not data:
+    for start in range(min(6, len(trans))):
+        for half in candidates:
+            if half < 2:
+                continue
+            data = _walk(bits, trans, half, start)
+            score = (len(data) // 8, len(data),
+                     1 if len(data) % 8 == 0 else 0)
+            if best is None or score > best[0]:
+                best = (score, start, half, data)
+    if best is None or not best[3]:
         return events
-    t_first = trans[0] * dt
+    start, half, data = best[1], best[2], best[3]
+    t_first = trans[start] * dt
     for k2, b in enumerate(data):
-        events.append(event((trans[0] + 2 * k2 * half) * dt, ch, "MAN",
+        events.append(event((trans[start] + 2 * k2 * half) * dt, ch, "MAN",
                             f"{b}"))
     # Group into bytes, LSB first
     byte_bits = []
@@ -78,11 +85,12 @@ def decode_manchester(samples, rate, ch=0):
     return events
 
 
-def _walk(bits, trans, half):
-    """Decode the bit stream for one half-bit candidate."""
+def _walk(bits, trans, half, start=0):
+    """Decode the bit stream for one half-bit candidate anchored at
+    ``trans[start]``."""
     data = []
-    first = trans[0]
-    ti = 0
+    first = trans[start]
+    ti = start
     expected = first
     while ti < len(trans):
         t = trans[ti]

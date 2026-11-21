@@ -8,6 +8,8 @@ event was produced.
 import unittest
 
 import core.decoders  # noqa: F401  registers every decoder
+from core.decoders import manchester
+from core.model import channel_bits
 from core.registry import DECKS
 
 RATE = 10000
@@ -53,6 +55,46 @@ class DecoderCorrectnessTest(unittest.TestCase):
                         any(t == etype and sub in txt for t, txt in pairs),
                         "missing %s containing %r; got %s" %
                         (etype, sub, pairs))
+
+
+class ManchesterHeadGlitchTest(unittest.TestCase):
+    """A spurious head transition must not break the start alignment.
+
+    The real pattern playback path can prepend one extra level blip
+    before the actual Manchester signal; the old fixed first-transition
+    anchor then decoded less than one byte. The multi-start scan must
+    still decode the full preamble and the "Hi" text.
+    """
+
+    def test_glitch_prefix_still_decodes_all_bytes(self):
+        deck = DECKS["manchester"]
+        clean = deck["make"](RATE)
+        prefix = [1] * 20 + [0] * 4 + [1] * 8
+        samples = prefix + list(clean)
+        events = deck["decode"](samples, RATE)
+        texts = [e["text"] for e in events if e["type"] == "MAN_BYTE"]
+        joined = " ".join(texts)
+        for expected in ("0x55", "0x48", "0x69"):
+            self.assertIn(expected, joined, texts)
+
+        # The same input must defeat the old fixed trans[0] anchor, which
+        # is what proves the scan really fixed the alignment.
+        bits = channel_bits(samples, 0)
+        trans = [i for i in range(1, len(bits))
+                 if bits[i - 1] != bits[i]]
+        gaps = [trans[k + 1] - trans[k] for k in range(len(trans) - 1)]
+        min_gap = min(gaps)
+        candidates = sorted({min_gap, 2 * min_gap})
+        if min_gap % 2 == 0:
+            candidates.insert(0, min_gap // 2)
+        old_data = []
+        for half in candidates:
+            if half < 2:
+                continue
+            data = manchester._walk(bits, trans, half)
+            if len(data) > len(old_data):
+                old_data = data
+        self.assertLess(len(old_data), 8, old_data)
 
 
 if __name__ == "__main__":
