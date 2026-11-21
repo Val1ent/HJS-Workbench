@@ -91,6 +91,13 @@ def acquire_serial(port, n_points, timeout=8.0, sample_rate=None, mode=None):
 
 PATTERN_PLAYBACK_RATE = 10000
 
+# Firmware capture block: the sampling DMA sends complete 1000-byte
+# blocks (CAP_BLOCK_LEN in firmware/src/Common/dma_capture.c). When K
+# lands in the middle of a block, up to one whole block of pre-K data
+# arrives before the new waveform, so the default window margin must
+# absorb one complete block on each side.
+PATTERN_CAPTURE_BLOCK = 1000
+
 
 def _poll_bytes(conn, need, timeout):
     """Poll non-blocking reads until ``need`` bytes arrive or the timeout.
@@ -111,7 +118,7 @@ def _poll_bytes(conn, need, timeout):
     return bytes(buf)
 
 
-def playback_pattern(port, cells, margin=300, timeout=20.0):
+def playback_pattern(port, cells, margin=PATTERN_CAPTURE_BLOCK, timeout=20.0):
     """Load a level sequence, play it, and return the real capture.
 
     Every cell is masked to the six GPO bits (0x3F), the length is
@@ -119,9 +126,13 @@ def playback_pattern(port, cells, margin=300, timeout=20.0):
     connection carries the whole flow (load, flush, play, read, stop) so
     the capture starts before the waveform head is missed. ``K`` is
     written separately from the pattern bytes, and ``L`` is sent on the
-    error path as well. Returns ``(rate, samples)`` where ``rate`` is
-    always 10000 and ``samples`` are the bytes actually read back from
-    the real device; the list is shorter than ``need`` when the timeout
+    error path as well. The default margin equals one capture block
+    (``PATTERN_CAPTURE_BLOCK``): even when ``K`` lands on the worst
+    block boundary, where up to one whole block of pre-K data precedes
+    the new waveform, the complete real waveform still falls inside the
+    read window. Returns ``(rate, samples)`` where ``rate`` is always
+    10000 and ``samples`` are the bytes actually read back from the
+    real device; the list is shorter than ``need`` when the timeout
     expired first. The connection is closed in every case.
     """
     from .hal import pattern

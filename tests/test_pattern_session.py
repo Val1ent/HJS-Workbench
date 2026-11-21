@@ -73,7 +73,7 @@ class PlaybackPatternTest(unittest.TestCase):
 
     def test_cells_are_masked_to_six_bits(self):
         cells = [0xFF, 0xC1, 0x80, 0x3F, 0x01]
-        need = len(cells) + 600
+        need = len(cells) + 2 * capture.PATTERN_CAPTURE_BLOCK
         self.conn._chunks = [bytes([0x03]) * need]
         rate, samples = capture.playback_pattern("COM9", cells, timeout=0.5)
         self.assertEqual(rate, capture.PATTERN_PLAYBACK_RATE)
@@ -89,7 +89,8 @@ class PlaybackPatternTest(unittest.TestCase):
 
     def test_writes_are_ordered_and_input_is_flushed(self):
         cells = [0x01, 0x02]
-        self.conn._chunks = [bytes([0x03]) * (len(cells) + 600)]
+        window = len(cells) + 2 * capture.PATTERN_CAPTURE_BLOCK
+        self.conn._chunks = [bytes([0x03]) * window]
         capture.playback_pattern("COM9", cells, timeout=0.5)
         self.assertEqual(self.conn.writes[0], b"W2\n")
         self.assertEqual(self.conn.writes[1], b"\x01\x02")
@@ -99,14 +100,15 @@ class PlaybackPatternTest(unittest.TestCase):
         self.assertTrue(self.conn.closed)
 
     def test_connection_uses_the_signal_baud(self):
-        self.conn._chunks = [bytes([0x00]) * (1 + 600)]
+        window = 1 + 2 * capture.PATTERN_CAPTURE_BLOCK
+        self.conn._chunks = [bytes([0x00]) * window]
         capture.playback_pattern("COM7", [0x00], timeout=0.5)
         self.assertEqual(self.backend.last_port, "COM7")
         self.assertEqual(self.backend.last_baud, 921600)
 
     def test_returns_real_captured_bytes(self):
-        need = 3 + 600
-        captured = bytes([0x43, 0xC5, 0x00]) * (need // 3)
+        need = 3 + 2 * capture.PATTERN_CAPTURE_BLOCK
+        captured = (bytes([0x43, 0xC5, 0x00]) * (need // 3 + 1))[:need]
         self.conn._chunks = [captured, b"extra-never-read"]
         rate, samples = capture.playback_pattern(
             "COM9", [0x01, 0x02, 0x03], timeout=0.5)
@@ -137,10 +139,25 @@ class PlaybackPatternTest(unittest.TestCase):
         self.assertTrue(self.conn.closed)
 
     def test_failed_stop_raises_the_original_error_and_closes(self):
-        self.conn._chunks = [bytes([0x03]) * (1 + 600)]
+        window = 1 + 2 * capture.PATTERN_CAPTURE_BLOCK
+        self.conn._chunks = [bytes([0x03]) * window]
         self.conn._stop_error = True
         with self.assertRaises(OSError):
             capture.playback_pattern("COM9", [0x01], timeout=0.5)
+        self.assertTrue(self.conn.closed)
+
+    def test_default_margin_covers_one_capture_block(self):
+        """The default read window keeps one whole capture block of
+        margin on each side, so the real waveform survives a worst-case
+        K position inside the previous DMA block."""
+        self.assertEqual(capture.PATTERN_CAPTURE_BLOCK, 1000)
+        cells = [0x01, 0x02, 0x03]
+        window = len(cells) + 2 * capture.PATTERN_CAPTURE_BLOCK
+        self.conn._chunks = [bytes([0x03]) * window]
+        rate, samples = capture.playback_pattern("COM9", cells, timeout=0.5)
+        self.assertEqual(rate, 10000)
+        self.assertEqual(len(samples), window)
+        self.assertEqual(self.conn.writes[-1], b"L")
         self.assertTrue(self.conn.closed)
 
 
